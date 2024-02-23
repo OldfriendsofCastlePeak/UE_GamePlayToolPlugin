@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTouchTwoFingerActionDelegate,float,
 /*
  * 该类主要用于触碰功能
  */
-UCLASS(ClassGroup=(CommonGamePlay), meta=(BlueprintSpawnableComponent),DisplayName="CommonGamePlayTouchComponent")
+UCLASS(ClassGroup=(CommonTool), meta=(BlueprintSpawnableComponent),DisplayName="CommonGamePlayTouchComponent")
 class COMMONGAMEPLAYTOOLPLUGIN_API UTouchComponent : public UActorComponent
 {
 	GENERATED_BODY()
