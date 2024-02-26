@@ -40,6 +40,8 @@ public class CommonGamePlayToolPlugin : ModuleRules
 				"SlateCore",
 				"EnhancedInput",
 				"InputCore",
+				"LevelSequence",
+				"MovieScene",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -305,35 +305,40 @@ void ACommonBasePawn::MouseRight_Internal(const FInputActionInstance& Value)
 
 void ACommonBasePawn::MouseXYMoveEvent_Implementation(const FVector2D Value)
 {
-	
 	//当bCan_Move为false时退出.
 	if (!bCan_Move) return;
 
+	//当前正在播放漫游Sequence动画是退出
+	if (bPlayingSequence) return;
+
+	//当前正在进行视口混合时退出
+	if (bPlayingViewBlend) return;
+	
 	//Normal_Camera相机和SpringArm_Camera相机都激活时
 	if (SpringArm_Camera->IsActive()&&Normal_Camera->IsActive())
 	{
-		OnAll_Camera_Active_Internal(Value);
+		OnAll_Camera_Active_MouseXYMoveEvent_Internal(Value);
 		return;
 	}
 	
 	//当Normal_Camera相机激活,且SpringArm_Camera相机未激活时调用
 	if (Normal_Camera->IsActive()&&!SpringArm_Camera->IsActive())
 	{
-		OnOnlyNormal_Camera_Active_Internal(Value);
+		OnOnlyNormal_Camera_Active_MouseXYMoveEvent_Internal(Value);
 		return;
 	}
 
 	//当SpringArm_Camera相机激活,且Normal_Camera相机未激活时调用
 	if (SpringArm_Camera->IsActive()&&!Normal_Camera->IsActive())
 	{
-		OnOnlySpringArm_Camera_Active_Internal(Value);
+		OnOnlySpringArm_Camera_Active_MouseXYMoveEvent_Internal(Value);
 		return;
 	}
 
 	//Normal_Camera相机和SpringArm_Camera相机都未激活时
 	if (!SpringArm_Camera->IsActive()&&!Normal_Camera->IsActive())
 	{
-		OnNo_Camera_Active_Internal(Value);
+		OnNo_Camera_Active_MouseXYMoveEvent_Internal(Value);
 	}
 }
 void ACommonBasePawn::KeyboardWASDMoveEvent_Implementation(const FVector2D Value)
@@ -348,8 +353,14 @@ void ACommonBasePawn::MouseWheelEvent_Implementation(const float Value)
 	//检测是否可移动
 	if (!bCan_Move) return;
 
+	//当前正在播放漫游Sequence动画是退出
+	if (bPlayingSequence) return;
+
+	//当前正在进行视口混合时退出
+	if (bPlayingViewBlend) return;
+	
 	//检测当前角度是否在限定范围内
-	if (GetActorRotation().Pitch<View_Rotate_Pitch_Range.X||GetActorRotation().Pitch>View_Rotate_Pitch_Range.Y)
+	if (GetActorRotation().Pitch<SpringArm_Camera_Rotate_Pitch_Range.X||GetActorRotation().Pitch>SpringArm_Camera_Rotate_Pitch_Range.Y)
 	{
 		//不在限定范围内
 		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::White,TEXT("角度Pitch超出范围，无法缩放视角"));
@@ -403,10 +414,10 @@ void ACommonBasePawn::MouseRightButtonEvent_Implementation(const bool Value)
 
 #pragma region 处理Pawn移动相关
 
-void ACommonBasePawn::OnOnlySpringArm_Camera_Active_Internal(const FVector2D& Value)
+void ACommonBasePawn::OnOnlySpringArm_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value)
 {
 	//检测当前角度是否在限定范围内
-	if (!(UKismetMathLibrary::InRange_FloatFloat(GetActorRotation().Pitch,View_Rotate_Pitch_Range.X,View_Rotate_Pitch_Range.Y),true,true))
+	if (!(UKismetMathLibrary::InRange_FloatFloat(GetActorRotation().Pitch,SpringArm_Camera_Rotate_Pitch_Range.X,SpringArm_Camera_Rotate_Pitch_Range.Y),true,true))
 	{
 		//不在范围内
 		SpringArm_Camera_To_Normal_Camera();
@@ -451,16 +462,30 @@ void ACommonBasePawn::OnOnlySpringArm_Camera_Active_Internal(const FVector2D& Va
 	}
 }
 
-void ACommonBasePawn::OnOnlyNormal_Camera_Active_Internal(const FVector2D& Value)
+void ACommonBasePawn::OnOnlyNormal_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value)
 {
 	//仅鼠标左键按下
 	if (bL_Mouse_Pressed==true&&bR_Mouse_Pressed!=true)
 	{
-		if (GetActorRotation().Pitch>=View_Rotate_Pitch_Range.X&&GetActorRotation().Pitch<=View_Rotate_Pitch_Range.Y)
+		
+		//if (GetActorRotation().Pitch>=View_Rotate_Pitch_Range.X&&GetActorRotation().Pitch<=View_Rotate_Pitch_Range.Y)
+		
+		if (UKismetMathLibrary::InRange_FloatFloat(this->GetActorRotation().Pitch,SpringArm_Camera_Rotate_Pitch_Range.X,SpringArm_Camera_Rotate_Pitch_Range.Y,true,true))
 		{
+			
+			GEngine->AddOnScreenDebugMessage(-1,1.f,FColor::White,FString::SanitizeFloat(this->GetActorRotation().Pitch));
 			//角度在范围内,转为SpringArm_Camera
-			Normal_Camera_To_SpringArm_Camera();
+			if (Normal_Camera_To_SpringArm_Camera())
+			{
+				GEngine->AddOnScreenDebugMessage(-1,1.f,FColor::White,TEXT("Normal_Camera转换SpringArm_Camera成功"));
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1,1.f,FColor::White,TEXT("Normal_Camera转换SpringArm_Camera失败"));
+			}
 
+			
+			
 			//重置自动旋转时间
 			Reset_Auto_Rotate_Total_Time();
 		}
@@ -469,6 +494,8 @@ void ACommonBasePawn::OnOnlyNormal_Camera_Active_Internal(const FVector2D& Value
 			//角度不在范围内,继续使用Normal_Camera的移动
 			Normal_Camera_Move_Pawn(Value);
 
+			GEngine->AddOnScreenDebugMessage(-1,1.f,FColor::White,TEXT("Normal_Camera_移动"));
+			
 			//重置自动旋转时间
 			Reset_Auto_Rotate_Total_Time();
 		}
@@ -479,7 +506,8 @@ void ACommonBasePawn::OnOnlyNormal_Camera_Active_Internal(const FVector2D& Value
 	{
 		//进行旋转操作
 		Normal_Camera_Rotate_Pawn(Value);
-
+		GEngine->AddOnScreenDebugMessage(-1,1.f,FColor::White,TEXT("Normal_Camera_旋转"));
+		
 		//重置自动旋转时间
 		Reset_Auto_Rotate_Total_Time();
 	}
@@ -494,12 +522,12 @@ void ACommonBasePawn::OnOnlyNormal_Camera_Active_Internal(const FVector2D& Value
 	
 }
 
-void ACommonBasePawn::OnNo_Camera_Active_Internal(const FVector2D& Value)
+void ACommonBasePawn::OnNo_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value)
 {
 	UE_LOG(LogTemp,Warning,TEXT("Erro：Pawn上没有激活的Camera"));
 }
 
-void ACommonBasePawn::OnAll_Camera_Active_Internal(const FVector2D& Value)
+void ACommonBasePawn::OnAll_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::White,TEXT("Erro：Pawn的Camera都已激活,这将出现逻辑错误"));
 	UE_LOG(LogTemp,Warning,TEXT("Erro：Pawn的Camera都已激活,这将出现逻辑错误"));
@@ -645,10 +673,8 @@ void ACommonBasePawn::SpringArm_Camera_Move_Pawn_Implementation(const FVector2D&
 void ACommonBasePawn::SpringArm_Camera_Rotate_Pawn_Implementation(const FVector2D& Value)
 {
 	//计算旋转的Y:Pitch值
-	const float NewPitchValue=UKismetMathLibrary::Clamp(
-		Value.Y*(1.f)+GetActorRotation().Pitch,
-		View_Rotate_Pitch_Range.X,
-		View_Rotate_Pitch_Range.Y);
+	const float New_TemPitchValue=Value.Y*(1.f)+GetActorRotation().Pitch;
+	const float NewPitchValue=New_TemPitchValue>=SpringArm_Camera_Rotate_Pitch_Range.X?(New_TemPitchValue<=SpringArm_Camera_Rotate_Pitch_Range.Y?New_TemPitchValue:SpringArm_Camera_Rotate_Pitch_Range.Y):SpringArm_Camera_Rotate_Pitch_Range.X;
 
 	//计算旋转的Z:Yaw值
 	const float NewYawValue=Value.X*(1.f)+GetActorRotation().Yaw;
@@ -662,17 +688,17 @@ void ACommonBasePawn::SpringArm_Camera_Rotate_Pawn_Implementation(const FVector2
 
 void ACommonBasePawn::Normal_Camera_Rotate_Pawn_Implementation(const FVector2D& Value)
 {
-	//计算旋转的Y:Pitch值,Pitch的值为-90或90度时会有问题.
-	const float NewPitchValue=UKismetMathLibrary::Clamp(
-			Value.Y*(Normal_Camera_Rotate_Param.Y)+GetActorRotation().Pitch,
-			-89.f,
-			89.f);
-
+	const FRotator CurrentRotation=GetActorRotation();
+	
+	//计算旋转的Y:Pitch值,限定Pitch的角度,因为Pitch的值为-90或90度时会有问题.
+	const float New_Tem_Pitch_Value=Value.Y*(Normal_Camera_Rotate_Param.Y)+CurrentRotation.Pitch;
+	const float NewPitchValue=New_Tem_Pitch_Value>=Normal_Camera_Rotate_Pitch_Range.X?(New_Tem_Pitch_Value<=Normal_Camera_Rotate_Pitch_Range.Y?New_Tem_Pitch_Value:Normal_Camera_Rotate_Pitch_Range.Y):Normal_Camera_Rotate_Pitch_Range.X;
+	
 	//计算旋转的Z:Yaw值
-	const float NewYawValue=Value.X*(Normal_Camera_Rotate_Param.X)+GetActorRotation().Yaw;
-
+	const float NewYawValue=Value.X*(Normal_Camera_Rotate_Param.X)+CurrentRotation.Yaw;
+	
 	//更新Pawn的角度.
-	SetActorRotation(FRotator(NewPitchValue,NewYawValue,GetActorRotation().Roll));
+	SetActorRotation(FRotator(NewPitchValue,NewYawValue,CurrentRotation.Roll));
 }
 
 void ACommonBasePawn::Normal_Camera_Move_Pawn_Implementation(const FVector2D& Value)
@@ -730,7 +756,7 @@ bool ACommonBasePawn::Normal_Camera_To_SpringArm_Camera_Implementation()
 	const FVector CurrentCameraLoc=GetActorLocation();		//获取当前的位置(此时位置应该与Norma_Camera一致)
 
 	//检查当前角度的Pitch值，是否处于限定范围内
-	if (CurrentCameraRotate.Pitch<View_Rotate_Pitch_Range.X||CurrentCameraRotate.Pitch>View_Rotate_Pitch_Range.Y)
+	if (CurrentCameraRotate.Pitch<SpringArm_Camera_Rotate_Pitch_Range.X||CurrentCameraRotate.Pitch>SpringArm_Camera_Rotate_Pitch_Range.Y)
 	{
 		GEngine->AddOnScreenDebugMessage(-1,1.f,FColor::White,TEXT("Erro:Z轴位置错误,超出限定范围,无法切换相机"));
 		UE_LOG(LogTemp,Warning,TEXT("Erro:Z轴位置错误,超出限定范围,无法切换相机"));
@@ -809,7 +835,7 @@ void ACommonBasePawn::Pawn_Round_Event_Implementation()
 	}
 	
 	//监测未操作时间是否大于设定值
-	if (No_Action_Total_Time<Can_Auto_Rotate_Time)
+	if (No_Action_Total_Time<Start_Auto_Rotate_Time)
 	{
 		No_Action_Total_Time+=UGameplayStatics::GetWorldDeltaSeconds(this);
 		return;
@@ -862,6 +888,9 @@ void ACommonBasePawn::Blend_View_Event_Implementation(const FVector& InVector, c
 		//进行混合
 		PlayerController->SetViewTargetWithBlend(View_Blend_Tem_Actor,BlendTime,BlendFunc,BlendExp,bLockOutgoing);
 
+		//用于定义当前处于视口混合状态
+		bPlayingViewBlend=true;
+		
 		//设置相机视口应处于的位置.
 		Set_Camera_View_By_Actor(InVector,InRotator);
 

@@ -8,7 +8,7 @@
 #include "GameFramework/Pawn.h"
 #include "CommonBasePawn.generated.h"
 
-UCLASS(Blueprintable,BlueprintType)
+UCLASS(Blueprintable,BlueprintType,HideCategories=(Pawn,Actor,Compomemts,UObject,Camera,Replication,Collision,HLOD,Input,Physics,DataLayers))
 class COMMONGAMEPLAYTOOLPLUGIN_API ACommonBasePawn : public APawn
 {
 	GENERATED_BODY()
@@ -60,7 +60,7 @@ public:
 	bool bR_Mouse_Pressed=false;
 
 	/* bCan_Move用于条件判断,控制Pawn是否可以在接收输入之后进行移动 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move")
 	bool bCan_Move=true;
 
 	/* 是否允许当一段时间未输入时自动旋转 */
@@ -72,7 +72,8 @@ public:
 	float Auto_Rotate_Speed=2;
 
 	/* 设置的开始自动旋转时间,当超过该时间时,将自动旋转 */
-	float Can_Auto_Rotate_Time=15;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|AutoRotate",meta=(EditCondition="bCan_AutoRotate"))
+	float Start_Auto_Rotate_Time=15;
 	
 	/* 用于累计未输入的时间 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|AutoRotate",meta=(EditCondition="bCan_AutoRotate"))
@@ -94,10 +95,14 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move")
 	float Pawn_Min_Z_Value=500;
 
-	/* 视野旋转Pitch值范围,X值表示最小值,Y值表示最大值 */
+	/* SpringArm_Camera旋转Pitch值范围,X值表示最小值,Y值表示最大值 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
-	FVector2D View_Rotate_Pitch_Range=FVector2D(-80.f,-1.f);
+	FVector2D SpringArm_Camera_Rotate_Pitch_Range=FVector2D(-80.f,-1.f);
 
+	/* Normal_Camera旋转Pitch值范围,X值表示最小值,Y值表示最大值 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Normal_Camera")
+	FVector2D Normal_Camera_Rotate_Pitch_Range=FVector2D(-89.f,89.f);
+	
 	/* 属性表示当前是否正在播放漫游Sequence动画 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move")
 	bool bPlayingSequence=false;
@@ -115,11 +120,11 @@ public:
 	class UTimelineComponent* SpringArm_TimeLine;
 
 	/* 属性Normal_Camera旋转参数,X:表示X方向的旋转,Y:表示Y方向的旋转 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Normal_Camera")
 	FVector2D Normal_Camera_Rotate_Param=FVector2D(0.5f,0.5f);
 
 	/* 属性Normal_Camera移动参数,X:表示X方向的移动,Y:表示Y方向的移动 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Normal_Camera")
 	FVector2D Normal_Camera_Move_Param=FVector2D(-1.f,-1.f);
 	
 	/* 用于视口混合的临时Actor */
@@ -168,7 +173,7 @@ public:
 	UFUNCTION(Blueprintable,Category="ACommonBasePawn|Input")
 	void AddEnhancedContext();
 	
-private:	
+private:
 	void MouseXYMove_Internal(const FInputActionInstance& Value);
 	void KeyboardWASDMove_Internal(const FInputActionInstance& Value);
 	void KeyboardEQUp_Internal(const FInputActionInstance& Value);
@@ -179,16 +184,16 @@ private:
 
 #pragma region 处理Pawn移动相关
 	/* 当SpringArm_Camera相机激活,且Normal_Camera相机未激活时调用 */
-	void OnOnlySpringArm_Camera_Active_Internal(const FVector2D& Value);
+	void OnOnlySpringArm_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value);
 
 	/* 当Normal_Camera相机激活,且SpringArm_Camera相机未激活时调用 */
-	void OnOnlyNormal_Camera_Active_Internal(const FVector2D& Value);
+	void OnOnlyNormal_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value);
 
 	/* 当Normal_Camera相机和SpringArm_Camera相机都未激活时调用 */
-	void OnNo_Camera_Active_Internal(const FVector2D& Value);
+	void OnNo_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value);
 
 	/* 当Normal_Camera相机和SpringArm_Camera相机都激活时调用 */
-	void OnAll_Camera_Active_Internal(const FVector2D& Value);
+	void OnAll_Camera_Active_MouseXYMoveEvent_Internal(const FVector2D& Value);
 
 	/* 用于确保只有一个Camera处于激活状态 */
 	void Ensure_Only_One_Camera_Active_Internal();

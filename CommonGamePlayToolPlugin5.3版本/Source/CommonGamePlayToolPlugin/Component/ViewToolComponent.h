@@ -9,7 +9,7 @@
 /* 声明一个委托类型 */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FViewToolDelegate);
 
-UCLASS(ClassGroup=(CommonTool), meta=(BlueprintSpawnableComponent),Blueprintable)
+UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent),Blueprintable)
 class COMMONGAMEPLAYTOOLPLUGIN_API UViewToolComponent : public UActorComponent
 {
 	GENERATED_BODY()
