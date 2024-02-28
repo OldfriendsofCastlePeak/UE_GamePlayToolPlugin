@@ -137,14 +137,6 @@ public:
 #pragma endregion
 
 #pragma region 输入事件输入相关
-	/* 用来存放UInputMappingContext的TMap,使用一个UInputMappingContext即可,为了扩展考虑,这里使用TMap */
-	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn|Input")
-	TMap<FName,UInputMappingContext*> InputMappingContextMap;
-
-	/* 用来存放UInputAction的TMap */
-	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn|Input")
-	TMap<FName,UInputAction*> InputActionMap;
-
 	/* 鼠标XY轴移动事件 */
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent,Category="ACommonBasePawn|Input")
 	void MouseXYMoveEvent(const FVector2D Value);
@@ -174,12 +166,7 @@ public:
 	void AddEnhancedContext();
 	
 private:
-	void MouseXYMove_Internal(const FInputActionInstance& Value);
-	void KeyboardWASDMove_Internal(const FInputActionInstance& Value);
-	void KeyboardEQUp_Internal(const FInputActionInstance& Value);
-	void MouseWheel_Internal(const FInputActionInstance& Value);
-	void MouseLeft_Internal(const FInputActionInstance& Value);
-	void MouseRight_Internal(const FInputActionInstance& Value);
+
 #pragma endregion
 
 #pragma region 处理Pawn移动相关

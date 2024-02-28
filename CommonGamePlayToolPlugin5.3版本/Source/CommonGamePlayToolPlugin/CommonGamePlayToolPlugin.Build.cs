@@ -42,6 +42,7 @@ public class CommonGamePlayToolPlugin : ModuleRules
 				"InputCore",
 				"LevelSequence",
 				"MovieScene",
+				"UMG",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

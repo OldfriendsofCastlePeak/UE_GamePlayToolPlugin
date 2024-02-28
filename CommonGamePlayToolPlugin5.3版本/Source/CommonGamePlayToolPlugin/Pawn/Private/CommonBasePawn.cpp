@@ -39,57 +39,6 @@ ACommonBasePawn::ACommonBasePawn(const FObjectInitializer& ObjectInitializer)
 	//创建用于视口混合的ViewToolComponent组件
 	ViewToolComponent=CreateDefaultSubobject<UViewToolComponent>("ViewToolComponent");
 	
-	//IA_Float2D_Mouse用来处理鼠标在XY轴上的输入
-	UInputAction* IA_Float2D_Mouse=CreateDefaultSubobject<UInputAction>(TEXT("IA_Float2D_Mouse"));
-	IA_Float2D_Mouse->bConsumeInput=true;
-	IA_Float2D_Mouse->bTriggerWhenPaused=false;
-	IA_Float2D_Mouse->bReserveAllMappings=false;
-	IA_Float2D_Mouse->ValueType=EInputActionValueType::Axis2D;
-	InputActionMap.Add(TEXT("IA_Float2D_Mouse"),IA_Float2D_Mouse);
-
-	//IA_Bool_MouseLeft用来处理鼠标左键的输入
-	UInputAction* IA_Bool_MouseLeft=CreateDefaultSubobject<UInputAction>(TEXT("IA_Bool_MouseLeft"));
-    IA_Bool_MouseLeft->bConsumeInput=true;
-    IA_Bool_MouseLeft->bTriggerWhenPaused=false;
-    IA_Bool_MouseLeft->bReserveAllMappings=false;
-    IA_Bool_MouseLeft->ValueType=EInputActionValueType::Boolean;
-    InputActionMap.Add(TEXT("IA_Bool_MouseLeft"),IA_Bool_MouseLeft);
-
-	//IA_Bool_MouseRight用来处理鼠标右键的输入
-	UInputAction* IA_Bool_MouseRight=CreateDefaultSubobject<UInputAction>(TEXT("IA_Bool_MouseRight"));
-    IA_Bool_MouseRight->bConsumeInput=true;
-    IA_Bool_MouseRight->bTriggerWhenPaused=false;
-    IA_Bool_MouseRight->bReserveAllMappings=false;
-    IA_Bool_MouseRight->ValueType=EInputActionValueType::Boolean;
-    InputActionMap.Add(TEXT("IA_Bool_MouseRight"),IA_Bool_MouseRight);
-	
-	//IA_Float2D_Keyboard用来处理按WASD键的输入
-	UInputAction* IA_Float2D_Keyboard=CreateDefaultSubobject<UInputAction>(TEXT("IA_Float2D_Keyboard"));
-	IA_Float2D_Keyboard->bConsumeInput=true;
-	IA_Float2D_Keyboard->bTriggerWhenPaused=false;
-	IA_Float2D_Keyboard->bReserveAllMappings=false;
-	IA_Float2D_Keyboard->ValueType=EInputActionValueType::Axis2D;
-	InputActionMap.Add(TEXT("IA_Float2D_Keyboard"),IA_Float2D_Keyboard);
-	
-	//IA_Float1D_Up用来处理按EQ键的输入
-	UInputAction* IA_Float1D_Up=CreateDefaultSubobject<UInputAction>(TEXT("IA_Float1D_Up"));
-	IA_Float1D_Up->bConsumeInput=true;
-	IA_Float1D_Up->bTriggerWhenPaused=false;
-	IA_Float1D_Up->bReserveAllMappings=false;
-	IA_Float1D_Up->ValueType=EInputActionValueType::Axis1D;
-	InputActionMap.Add(TEXT("IA_Float1D_Up"),IA_Float1D_Up);
-	
-	//IA_Float1D_MouseWheel用来处理滚动鼠标中间的输入
-	UInputAction* IA_Float1D_MouseWheel=CreateDefaultSubobject<UInputAction>(TEXT("IA_Float1D_MouseWheel"));
-	IA_Float1D_MouseWheel->bConsumeInput=true;
-	IA_Float1D_MouseWheel->bTriggerWhenPaused=false;
-	IA_Float1D_MouseWheel->bReserveAllMappings=false;
-	IA_Float1D_MouseWheel->ValueType=EInputActionValueType::Axis1D;
-	InputActionMap.Add(TEXT("IA_Float1D_MouseWheel"),IA_Float1D_MouseWheel);
-	
-	//Game_Input_Context 用来映射按键输入
-	UInputMappingContext* Game_Input_Context=CreateDefaultSubobject<UInputMappingContext>(TEXT("Game_Input_Context"));
-	InputMappingContextMap.Add(FName(TEXT("Game_Input_Context")),Game_Input_Context);
 }
 
 // Called when the game starts or when spawned
@@ -115,125 +64,6 @@ void ACommonBasePawn::Tick(float DeltaTime)
 void ACommonBasePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	if (UEnhancedInputComponent* EnhancedInputComponent=Cast<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-			//IA_Float2D_Mouse用来处理鼠标在XY轴上的输入
-            	UInputAction* IA_Float2D_Mouse=NewObject<UInputAction>(this,TEXT("IA_Float2D_Mouse"));
-            	IA_Float2D_Mouse->bConsumeInput=true;
-            	IA_Float2D_Mouse->bTriggerWhenPaused=false;
-            	IA_Float2D_Mouse->bReserveAllMappings=false;
-            	IA_Float2D_Mouse->ValueType=EInputActionValueType::Axis2D;
-            	InputActionMap.Add(TEXT("IA_Float2D_Mouse"),IA_Float2D_Mouse);
-            
-            	//IA_Bool_MouseLeft用来处理鼠标左键的输入
-            	UInputAction* IA_Bool_MouseLeft=NewObject<UInputAction>(this,TEXT("IA_Bool_MouseLeft"));
-                IA_Bool_MouseLeft->bConsumeInput=true;
-                IA_Bool_MouseLeft->bTriggerWhenPaused=false;
-                IA_Bool_MouseLeft->bReserveAllMappings=false;
-                IA_Bool_MouseLeft->ValueType=EInputActionValueType::Boolean;
-                InputActionMap.Add(TEXT("IA_Bool_MouseLeft"),IA_Bool_MouseLeft);
-            
-            	//IA_Bool_MouseRight用来处理鼠标右键的输入
-            	UInputAction* IA_Bool_MouseRight=NewObject<UInputAction>(this,TEXT("IA_Bool_MouseRight"));
-                IA_Bool_MouseRight->bConsumeInput=true;
-                IA_Bool_MouseRight->bTriggerWhenPaused=false;
-                IA_Bool_MouseRight->bReserveAllMappings=false;
-                IA_Bool_MouseRight->ValueType=EInputActionValueType::Boolean;
-                InputActionMap.Add(TEXT("IA_Bool_MouseRight"),IA_Bool_MouseRight);
-            	
-            	//IA_Float2D_Keyboard用来处理按WASD键的输入
-            	UInputAction* IA_Float2D_Keyboard=NewObject<UInputAction>(this,TEXT("IA_Float2D_Keyboard"));
-            	IA_Float2D_Keyboard->bConsumeInput=true;
-            	IA_Float2D_Keyboard->bTriggerWhenPaused=false;
-            	IA_Float2D_Keyboard->bReserveAllMappings=false;
-            	IA_Float2D_Keyboard->ValueType=EInputActionValueType::Axis2D;
-            	InputActionMap.Add(TEXT("IA_Float2D_Keyboard"),IA_Float2D_Keyboard);
-            	
-            	//IA_Float1D_Up用来处理按EQ键的输入
-            	UInputAction* IA_Float1D_Up=NewObject<UInputAction>(this,TEXT("IA_Float1D_Up"));
-            	IA_Float1D_Up->bConsumeInput=true;
-            	IA_Float1D_Up->bTriggerWhenPaused=false;
-            	IA_Float1D_Up->bReserveAllMappings=false;
-            	IA_Float1D_Up->ValueType=EInputActionValueType::Axis1D;
-            	InputActionMap.Add(TEXT("IA_Float1D_Up"),IA_Float1D_Up);
-            	
-            	//IA_Float1D_MouseWheel用来处理滚动鼠标中间的输入
-            	UInputAction* IA_Float1D_MouseWheel=NewObject<UInputAction>(this,TEXT("IA_Float1D_MouseWheel"));
-            	IA_Float1D_MouseWheel->bConsumeInput=true;
-            	IA_Float1D_MouseWheel->bTriggerWhenPaused=false;
-            	IA_Float1D_MouseWheel->bReserveAllMappings=false;
-            	IA_Float1D_MouseWheel->ValueType=EInputActionValueType::Axis1D;
-            	InputActionMap.Add(TEXT("IA_Float1D_MouseWheel"),IA_Float1D_MouseWheel);
-            	
-            	//Game_Input_Context 用来映射按键输入
-            	UInputMappingContext* Game_Input_Context=NewObject<UInputMappingContext>(this,TEXT("Game_Input_Context"));
-            	InputMappingContextMap.Add(FName(TEXT("Game_Input_Context")),Game_Input_Context);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		
-		//将IA_Float2D_Mouse与鼠标在XY轴上的输入绑定,Y轴需要其值作为FVector2D的Y,因为值不能都存在FVector2D的X.
-		Game_Input_Context->MapKey(IA_Float2D_Mouse,EKeys::MouseX);
-		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingMouseY= Game_Input_Context->MapKey(IA_Float2D_Mouse,EKeys::MouseY);
-		FEnhancedActionKeyMappingMouseY.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
-		EnhancedInputComponent->BindAction(InputActionMap.FindChecked("IA_Float2D_Mouse"),ETriggerEvent::Triggered,this,&ACommonBasePawn::MouseXYMove_Internal);
-
-		//将IA_Bool_MouseLeft与鼠标左键的输入绑定
-		Game_Input_Context->MapKey(IA_Bool_MouseLeft,EKeys::LeftMouseButton);
-		EnhancedInputComponent->BindAction(IA_Bool_MouseLeft,ETriggerEvent::Started,this,&ACommonBasePawn::MouseLeft_Internal);
-		EnhancedInputComponent->BindAction(IA_Bool_MouseLeft,ETriggerEvent::Completed,this,&ACommonBasePawn::MouseLeft_Internal);
-		
-		//将IA_Bool_MouseRight与鼠标右键的输入绑定
-		Game_Input_Context->MapKey(IA_Bool_MouseRight,EKeys::RightMouseButton);
-		EnhancedInputComponent->BindAction(IA_Bool_MouseRight,ETriggerEvent::Started,this,&ACommonBasePawn::MouseRight_Internal);
-		EnhancedInputComponent->BindAction(IA_Bool_MouseRight,ETriggerEvent::Completed,this,&ACommonBasePawn::MouseRight_Internal);
-		
-		//将IA_Float2D_Keyboard与键盘WASD键的输入绑定,W键的值作为FVector2D的Y值。S键的值作为FVector2D的Y值,需要反向。A键的值作为FVector2D的X,需要反向。D键的值作为FVector2D的X。因为值不能都存在FVector2D的X上.
-		Game_Input_Context->MapKey(IA_Float2D_Keyboard,EKeys::W);
-		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingKeyboardS = Game_Input_Context->MapKey(IA_Float2D_Keyboard,EKeys::S);
-		FEnhancedActionKeyMappingKeyboardS.Modifiers.Add(NewObject<UInputModifierNegate>());
-		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingKeyboardA = Game_Input_Context->MapKey(IA_Float2D_Keyboard,EKeys::A);
-		FEnhancedActionKeyMappingKeyboardA.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
-		FEnhancedActionKeyMappingKeyboardA.Modifiers.Add(NewObject<UInputModifierNegate>());
-		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingKeyboardD = Game_Input_Context->MapKey(IA_Float2D_Keyboard,EKeys::D);
-		FEnhancedActionKeyMappingKeyboardD.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
-		EnhancedInputComponent->BindAction(IA_Float2D_Keyboard,ETriggerEvent::Triggered,this,&ACommonBasePawn::KeyboardWASDMove_Internal);
-		
-		//将IA_Float1D_Up与键盘EQ键的输入绑定,E键的值为正,Q键的值为负.
-		Game_Input_Context->MapKey(IA_Float1D_Up,EKeys::E);
-		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingKeyboardQ=Game_Input_Context->MapKey(IA_Float1D_Up,EKeys::Q);
-		FEnhancedActionKeyMappingKeyboardQ.Modifiers.Add(NewObject<UInputModifierNegate>());
-		EnhancedInputComponent->BindAction(IA_Float1D_Up,ETriggerEvent::Triggered,this,&ACommonBasePawn::KeyboardEQUp_Internal);
-		
-		//将IA_Float1D_MouseWheel与鼠标滚动的输入绑定
-		Game_Input_Context->MapKey(IA_Float1D_MouseWheel,EKeys::MouseWheelAxis);
-		EnhancedInputComponent->BindAction(IA_Float1D_MouseWheel,ETriggerEvent::Triggered,this,&ACommonBasePawn::MouseWheel_Internal);
-	}
 }
 
 
@@ -241,13 +71,7 @@ void ACommonBasePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ACommonBasePawn::AddEnhancedContext()
 {
-	if (APlayerController* PlayerController=Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(InputMappingContextMap.FindChecked("Game_Input_Context"),0);
-		}
-	}
+	
 }
 
 
@@ -268,40 +92,6 @@ void ACommonBasePawn::AddEnhancedContext()
 
 
 #pragma region 输入事件输入相关
-
-
-void ACommonBasePawn::MouseXYMove_Internal(const FInputActionInstance& Value)
-{
-	MouseXYMoveEvent(Value.GetValue().Get<FVector2D>());
-}
-
-void ACommonBasePawn::KeyboardWASDMove_Internal(const FInputActionInstance& Value)
-{
-	KeyboardWASDMoveEvent(Value.GetValue().Get<FVector2D>());
-}
-
-void ACommonBasePawn::KeyboardEQUp_Internal(const FInputActionInstance& Value)
-{
-	KeyboardEQUpEvent(Value.GetValue().Get<float>());
-}
-
-void ACommonBasePawn::MouseWheel_Internal(const FInputActionInstance& Value)
-{
-	MouseWheelEvent(Value.GetValue().Get<float>());
-}
-
-void ACommonBasePawn::MouseLeft_Internal(const FInputActionInstance& Value)
-{
-	MouseLeftButtonEvent(Value.GetValue().Get<bool>());
-}
-
-void ACommonBasePawn::MouseRight_Internal(const FInputActionInstance& Value)
-{
-	MouseRightButtonEvent(Value.GetValue().Get<bool>());
-}
-
-
-
 
 void ACommonBasePawn::MouseXYMoveEvent_Implementation(const FVector2D Value)
 {

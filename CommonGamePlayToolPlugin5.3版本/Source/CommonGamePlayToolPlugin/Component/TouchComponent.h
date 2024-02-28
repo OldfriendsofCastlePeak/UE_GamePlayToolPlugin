@@ -6,8 +6,23 @@
 #include "Components/ActorComponent.h"
 #include "TouchComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTouchOneFingerActionDelegate,FVector2D,InMoveDirectionValue);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTouchTwoFingerActionDelegate,float,InMoveDirectionValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTouchInputDelegate,FVector,Value);
+
+
+/* 该枚举类型用于不同的触碰操作 */
+UENUM(BlueprintType)
+enum ETouchActionMode:uint8
+{
+	TouchGame		UMETA(Displayname="射击类手游"),		//左手区域控制移动,右手区域控制旋转
+	TouchOnePerson	UMETA(Displayname="第一人称观光模式"),	//单指控制方向,双指控制缩放
+	//...后序在此扩展
+	Unkown			UMETA(Displayname="未知")
+};
+
+
+
+
+
 
 /*
  * 该类主要用于触碰功能
@@ -30,61 +45,45 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
-	//单指移动
-	UPROPERTY(BlueprintAssignable,Category="Tocuh")
-	FTouchOneFingerActionDelegate OneFingerTouchMove;
+	/* 用于存储UInputAction行为的UInputMappingContext */
+	UPROPERTY(BlueprintReadWrite,Category="Tocuh|Input")
+	class UInputMappingContext* Touch_Input_Mapping_Context=nullptr;
 
-	//双指缩放
-	UPROPERTY(BlueprintAssignable,Category="Tocuh")
-	FTouchTwoFingerActionDelegate TwoFingerTouchScale;
-
-	//增强输入的优先级
-	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category="EnhanceInput")
-	int32 InputPriority=0;
-
-	//触碰1的开始事件
-	UFUNCTION(BlueprintNativeEvent,Category="Touch1")
-	void Touch1StartedEvent(const FInputActionInstance& InputValue);
-
-	//触碰1的持续触发事件
-	UFUNCTION(BlueprintNativeEvent,Category="Touch1")
-	void Touch1TriggeredEvent(const FInputActionInstance& InputValue);
+	/* 用于存储UInputAction的数组 */
+	UPROPERTY(BlueprintReadWrite,Category="Tocuh|Input")
+	TMap<FName,class UInputAction*>Touch_Input_Action_Array;
 	
-	//触碰1的结束事件
-	UFUNCTION(BlueprintNativeEvent,Category="Touch1")
-	void Touch1CompletedEvent(const FInputActionInstance& InputValue);
-	
-	//触碰2的开始事件
-	UFUNCTION(BlueprintNativeEvent,Category="Touch1")
-	void Touch2StartedEvent(const FInputActionInstance& InputValue);
-	
-	//触碰2的持续触发事件
-	UFUNCTION(BlueprintNativeEvent,Category="Touch1")
-	void Touch2TriggeredEvent(const FInputActionInstance& InputValue);
-	
-	//触碰2的结束事件
-	UFUNCTION(BlueprintNativeEvent,Category="Touch1")
-	void Touch2CompletedEvent(const FInputActionInstance& InputValue);
-	
+	/* 注册触碰输入映射 */
+	void RegisterTouchInput();
 
-private:
-	//触碰1
-	UPROPERTY()
-	UInputAction* IA_Float2D_Touch1;
+	/* 取消注册触碰输入映射 */
+	void UnRegisterTouchInput();
 	
-	//触碰2
-	UPROPERTY()
-	UInputAction* IA_Float2D_Touch2;
+	/* 触碰手指1的开始委托 */
+	UPROPERTY(BlueprintAssignable,Category="UTouchComponent|Touch1")
+	FTouchInputDelegate Touch_1_Start;
 
-	//用于存储UInputAction和按键映射的InputContext
-	UPROPERTY()
-	UInputMappingContext* Touch_Input_Mapping_Context;
+	/* 触碰手指1的移动委托 */
+	UPROPERTY(BlueprintAssignable,Category="UTouchComponent|Touch1")
+	FTouchInputDelegate Touch_1_Moving;
 
-	//将UInputAction和对应的Touch触碰行为映射,并绑定具体行为按键
-	void AddInputActionToInputMappingContext();
+	/* 触碰手指1的松开委托 */
+	UPROPERTY(BlueprintAssignable,Category="UTouchComponent|Touch1")
+	FTouchInputDelegate Touch_1_End;
 
-	//将输入映射注册到增强输入子系统中
-	void RegisterInputMappingContextToEnhanceInoput() const;
+	/* 触碰手指2的开始委托 */
+	UPROPERTY(BlueprintAssignable,Category="UTouchComponent|Touch1")
+	FTouchInputDelegate Touch_2_Start;
+
+	/* 触碰手指2的移动委托 */
+	UPROPERTY(BlueprintAssignable,Category="UTouchComponent|Touch1")
+	FTouchInputDelegate Touch_2_Moving;
+
+	/* 触碰手指2的松开委托 */
+	UPROPERTY(BlueprintAssignable,Category="UTouchComponent|Touch1")
+	FTouchInputDelegate Touch_2_End;
+
+
 
 	bool bTouch1Press=false;
 	bool bTouch2Press=false;
@@ -95,6 +94,84 @@ private:
 	FVector2D Touch1Direction;
 	FVector2D Touch2Direction;
 
+
+
+
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTouchDynmic, FVector, Moved);
+
+
+
+	/** * 多播指定接收到的调度器1 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch1;
+
+	/** * 多播指定接收到的调度器2 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch2;
+
+	/** * 多播指定接收到的调度器3 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch3;
+
+	/** * 多播指定接收到的调度器4 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch4;
+
+	/** * 多播指定接收到的调度器5 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch5;
+
+	/** * 多播指定接收到的调度器6 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch6;
+
+	/** * 多播指定接收到的调度器7 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch7;
+
+	/** * 多播指定接收到的调度器8 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch8;
+
+	/** * 多播指定接收到的调度器9 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch9;
+
+	/** * 多播指定接收到的调度器10 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnTouchDynmic OnMovedTouch10;
+
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnIndexTouchDynmic,FVector, Moved, uint8, FingerIndex);
+
+	/** * 多播收到触发的调度器 */
+	UPROPERTY(BlueprintAssignable, Category = "Aimo|On")
+	FOnIndexTouchDynmic OnTriggerTouch;
+
+
+
+
+
+
+
 	
+	/** * 绑定触控 */
+	UFUNCTION(BlueprintCallable, Category = "Aimo|Function")
+	virtual bool DelegateBind(uint8 FingerIndex, bool bDelegateBind, UObject* InFunctionObject, const FName& InFunctionName);
+
+
+private:
+	void Touch1Pressed_Internal(const FInputActionInstance& Value);
+	void Touch1Moved_Internal(const FInputActionInstance& Value);
+	void Touch1Released_Internal(const FInputActionInstance& Value);
+	
+	void Touch2Pressed_Internal(const FInputActionInstance& Value);
+	void Touch2Moved_Internal(const FInputActionInstance& Value);
+	void Touch2Released_Internal(const FInputActionInstance& Value);
+
+	
+
 	
 };
+

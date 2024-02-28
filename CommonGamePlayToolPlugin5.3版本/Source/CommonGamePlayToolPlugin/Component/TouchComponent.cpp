@@ -6,7 +6,6 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
-#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values for this component's properties
@@ -14,30 +13,6 @@ UTouchComponent::UTouchComponent()
 {
 	//Tick没必要开启
 	PrimaryComponentTick.bCanEverTick = false;
-
-	//创建对应的InputAction对象
-	IA_Float2D_Touch1=CreateDefaultSubobject<UInputAction>(TEXT("IA_Float2D_Touch1"));
-	IA_Float2D_Touch1->ValueType=EInputActionValueType::Axis2D;
-
-	IA_Float2D_Touch2=CreateDefaultSubobject<UInputAction>(TEXT("IA_Float2D_Touch2"));
-	IA_Float2D_Touch2->ValueType=EInputActionValueType::Axis2D;
-
-	//创建对应的UInputMappingContext对象
-	Touch_Input_Mapping_Context=CreateDefaultSubobject<UInputMappingContext>(TEXT("Touch_Input_Mapping_Context"));
-	
-
-
-
-
-
-
-
-
-
-
-
-
-	
 	
 }
 
@@ -47,12 +22,8 @@ void UTouchComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//将UInputAction和对应的Touch触碰行为映射
-	AddInputActionToInputMappingContext();
-
-	//将输入映射注册到增强输入子系统中
-	RegisterInputMappingContextToEnhanceInoput();
-	
+	//注册触碰输入映射
+	RegisterTouchInput();
 }
 
 
@@ -60,191 +31,230 @@ void UTouchComponent::BeginPlay()
 void UTouchComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	
 	// ...
 }
 
-void UTouchComponent::Touch1StartedEvent_Implementation(const FInputActionInstance& InputValue)
+void UTouchComponent::RegisterTouchInput()
 {
-	//Touch1开始触碰时将bTouch1Press设置为true
-	bTouch1Press=true;
+	if (UEnhancedInputComponent* EnhancedInputComponent=Cast<UEnhancedInputComponent>(this->GetOwner()->InputComponent))
+    	{
+    		if (APlayerController* PlayerController=Cast<APlayerController>(this->GetOwner()->GetInstigatorController()))
+    		{
+    			//IA_Float2D_Touch1用来处理Touch1的输入
+    			UInputAction* IA_Float2D_Touch1=NewObject<UInputAction>(this,TEXT("IA_Float2D_Touch1"));
+    			IA_Float2D_Touch1->bConsumeInput=true;
+    			IA_Float2D_Touch1->bTriggerWhenPaused=false;
+    			IA_Float2D_Touch1->bReserveAllMappings=false;
+    			IA_Float2D_Touch1->ValueType=EInputActionValueType::Axis2D;
+    			Touch_Input_Action_Array.Add(TEXT("IA_Float2D_Touch1"),IA_Float2D_Touch1);
+    	
+    			//IA_Float2D_Touch1用来处理Touch2的输入
+    			UInputAction* IA_Float2D_Touch2=NewObject<UInputAction>(this,TEXT("IA_Float2D_Touch2"));
+    			IA_Float2D_Touch2->bConsumeInput=true;
+    			IA_Float2D_Touch2->bTriggerWhenPaused=false;
+    			IA_Float2D_Touch2->bReserveAllMappings=false;
+    			IA_Float2D_Touch2->ValueType=EInputActionValueType::Axis2D;
+    			Touch_Input_Action_Array.Add(TEXT("IA_Float2D_Touch2"),IA_Float2D_Touch2);
+            	    
+    			//Touch_Input_Mapping_Context用来映射触碰输入
+    			Touch_Input_Mapping_Context=NewObject<UInputMappingContext>(this,TEXT("MouseInputMappingContextMap"));
+    		
+    
+    		
+    			//将IA_Float2D_Touch1与Touch1的输入绑定
+    			Touch_Input_Mapping_Context->MapKey(IA_Float2D_Touch1,EKeys::TouchKeys[0]);
+    			EnhancedInputComponent->BindAction(IA_Float2D_Touch1,ETriggerEvent::Started,this,&UTouchComponent::Touch1Pressed_Internal);
+    			EnhancedInputComponent->BindAction(IA_Float2D_Touch1,ETriggerEvent::Triggered,this,&UTouchComponent::Touch1Pressed_Internal);
+    			EnhancedInputComponent->BindAction(IA_Float2D_Touch1,ETriggerEvent::Completed,this,&UTouchComponent::Touch1Released_Internal);
+    	
+    			//将IA_Float2D_Touch2与Touch2的输入绑定
+    			Touch_Input_Mapping_Context->MapKey(IA_Float2D_Touch2,EKeys::TouchKeys[1]);
+    			EnhancedInputComponent->BindAction(IA_Float2D_Touch2,ETriggerEvent::Started,this,&UTouchComponent::Touch2Pressed_Internal);
+    			EnhancedInputComponent->BindAction(IA_Float2D_Touch2,ETriggerEvent::Triggered,this,&UTouchComponent::Touch2Pressed_Internal);
+    			EnhancedInputComponent->BindAction(IA_Float2D_Touch2,ETriggerEvent::Completed,this,&UTouchComponent::Touch2Released_Internal);
 
-	//将Touch1Direction归零
-	Touch1Direction.Zero();
-
-	//将Touch1LastLocation设置为当前触碰位置
-	Touch1LastLocation=InputValue.GetValue().Get<FVector2D>();
+    			
+    			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+    			{
+    				EnhancedInputLocalPlayerSubsystem->AddMappingContext(Touch_Input_Mapping_Context,0);
+    			}
+    		}
+    	}
 }
 
-void UTouchComponent::Touch1TriggeredEvent_Implementation(const FInputActionInstance& InputValue)
+void UTouchComponent::UnRegisterTouchInput()
 {
-	if (bTouch2Press)
+	if (Touch_Input_Mapping_Context)
 	{
-		//bTouch2Press为true时不做处理,在Touch2中的Triggered中进行处理
-	}
-	else
-	{
-		if (!Touch1Direction.IsZero())
+		if (const APlayerController* PlayerController=Cast<APlayerController>(this->GetOwner()->GetInstigatorController()))
 		{
-			//触碰1的向量不为0时调用委托
-			if (OneFingerTouchMove.IsBound())
+			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 			{
-				OneFingerTouchMove.Broadcast(Touch1Direction);
+				EnhancedInputLocalPlayerSubsystem->RemoveMappingContext(Touch_Input_Mapping_Context);
 			}
 		}
 	}
-	//计算Touch1最新的移动向量轨迹
-	Touch1Direction=InputValue.GetValue().Get<FVector2D>()-Touch1LastLocation;
-
-	//更新位置
-	Touch1LastLocation=InputValue.GetValue().Get<FVector2D>();
 }
 
-void UTouchComponent::Touch1CompletedEvent_Implementation(const FInputActionInstance& InputValue)
+bool UTouchComponent::DelegateBind(uint8 FingerIndex, bool bDelegateBind, UObject* InFunctionObject,
+	const FName& InFunctionName)
 {
-	//Touch1结束触碰时将bTouch1Press设置为false
-	bTouch1Press=false;
-
-	//将Touch1Direction归零
-	Touch1Direction.Zero();
-
-	//将Touch1LastLocation归零
-	Touch1LastLocation.Zero();
-}
-
-void UTouchComponent::Touch2StartedEvent_Implementation(const FInputActionInstance& InputValue)
-{
-	//Touch1开始触碰时将bTouch1Press设置为true
-	bTouch2Press=true;
-
-	//将Touch1Direction归零
-	Touch2Direction.Zero();
-
-	//将Touch1LastLocation设置为当前触碰位置
-	Touch2LastLocation=InputValue.GetValue().Get<FVector2D>();
-}
-
-void UTouchComponent::Touch2TriggeredEvent_Implementation(const FInputActionInstance& InputValue)
-{
-	if (bTouch1Press)
+	if (InFunctionObject == nullptr)
 	{
-		//处理双指行为
-		if (Touch1Direction.IsZero())
-		{
-			//Touch1Direction为0,Touch2Direction不为0则广播委托
-			if (!Touch2Direction.IsZero())
+		return false;
+	}
+	FScriptDelegate ScriptDelegate; //建立对接变量
+	ScriptDelegate.BindUFunction(InFunctionObject, InFunctionName); //对接变量绑定函数
+	switch (FingerIndex)
+	{
+		case 0:
+			if (bDelegateBind)
 			{
-				if (OneFingerTouchMove.IsBound())
-				{
-					OneFingerTouchMove.Broadcast(Touch2Direction);
-				}
-			}
-		}
-		else
-		{
-			if (Touch2Direction.IsZero())
-			{
-				//Touch2Direction为0,则使用Touch1Direction的值广播委托
-				if (OneFingerTouchMove.IsBound())
-				{
-					OneFingerTouchMove.Broadcast(Touch1Direction);
-				}
+				OnMovedTouch1.Add(ScriptDelegate); //绑定对接变量
 			}
 			else
 			{
-				//使用点乘+反余弦获取两个向量的夹角
-				if (FMath::TruncToInt(UKismetMathLibrary::DegAcos(FVector2D::DotProduct(Touch1Direction,Touch2Direction)))==0)
-				{
-					//两个向量间的夹角为0,两个向量任选其一传入
-					if (OneFingerTouchMove.IsBound())
-					{
-						OneFingerTouchMove.Broadcast(Touch1Direction);
-					}
-				}
-				else
-				{
-					if (TwoFingerTouchScale.IsBound())
-					{
-						const FVector2D Touch2CurrentLocation=InputValue.GetValue().Get<FVector2D>();
-						//(Touch2CurrentLocation-Touch1LastLocation).Length()为当前的Touch2点到Tocuh1点的向量长度
-						//(Touch2LastLocation-Touch1LastLocation).Length()为前一次的Touch2点到Tocuh1点的向量长度
-
-						//单位符号,用于确定是缩小还是放大
-						const int32 UnitSign=(Touch2CurrentLocation-Touch1LastLocation).Length()>(Touch2LastLocation-Touch1LastLocation).Length()?1:-1;
-
-						//广播双指操作
-						TwoFingerTouchScale.Broadcast(FMath::Abs((Touch2CurrentLocation-Touch2LastLocation).Length())*UnitSign);
-					}
-				}
+				OnMovedTouch1.Remove(ScriptDelegate);
 			}
-		}
-	}
-	else
-	{
-		if (!Touch2Direction.IsZero())
-		{
-			//触碰1的向量不为0时调用委托
-			if (OneFingerTouchMove.IsBound())
+			break;
+		case 1:
+			if (bDelegateBind)
 			{
-				OneFingerTouchMove.Broadcast(Touch2Direction);
+				OnMovedTouch2.Add(ScriptDelegate); //绑定对接变量
 			}
-		}
+			else
+			{
+				OnMovedTouch2.Remove(ScriptDelegate);
+			}
+			break;
+		case 2:
+			if (bDelegateBind)
+			{
+				OnMovedTouch3.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch3.Remove(ScriptDelegate);
+			}
+			break;
+		case 3:
+			if (bDelegateBind)
+			{
+				OnMovedTouch4.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch4.Remove(ScriptDelegate);
+			}
+			break;
+		case 4:
+			if (bDelegateBind)
+			{
+				OnMovedTouch5.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch5.Remove(ScriptDelegate);
+			}
+			break;
+		case 5:
+			if (bDelegateBind)
+			{
+				OnMovedTouch6.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch6.Remove(ScriptDelegate);
+			}
+			break;
+		case 6:
+			if (bDelegateBind)
+			{
+				OnMovedTouch7.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch7.Remove(ScriptDelegate);
+			}
+			break;
+		case 7:
+			if (bDelegateBind)
+			{
+				OnMovedTouch8.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch8.Remove(ScriptDelegate);
+			}
+			break;
+		case 8:
+			if (bDelegateBind)
+			{
+				OnMovedTouch9.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch9.Remove(ScriptDelegate);
+			}
+			break;
+		case 9:
+			if (bDelegateBind)
+			{
+				OnMovedTouch10.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnMovedTouch10.Remove(ScriptDelegate);
+			}
+			break;
+		case 10:
+			if (bDelegateBind)
+			{
+				OnTriggerTouch.Add(ScriptDelegate); //绑定对接变量
+			}
+			else
+			{
+				OnTriggerTouch.Remove(ScriptDelegate);
+			}
+			break;
+		default:
+			FingerIndex = 255;
+			break;
 	}
-
-	//计算Touch1最新的移动向量轨迹
-	Touch2Direction=InputValue.GetValue().Get<FVector2D>()-Touch2LastLocation;
-
-	//更新位置
-	Touch2LastLocation=InputValue.GetValue().Get<FVector2D>();
+	return FingerIndex != 255;
 }
 
-void UTouchComponent::Touch2CompletedEvent_Implementation(const FInputActionInstance& InputValue)
+void UTouchComponent::Touch1Pressed_Internal(const FInputActionInstance& Value)
 {
-	//Touch1结束触碰时将bTouch1Press设置为false
-	bTouch2Press=false;
-
-	//将Touch1Direction归零
-	Touch2Direction.Zero();
-
-	//将Touch1LastLocation归零
-	Touch2LastLocation.Zero();
+	Touch_1_Start.Broadcast(Value.GetValue().Get<FVector>());
 }
 
-void UTouchComponent::AddInputActionToInputMappingContext()
+void UTouchComponent::Touch1Moved_Internal(const FInputActionInstance& Value)
 {
-	Touch_Input_Mapping_Context->MapKey(IA_Float2D_Touch1,EKeys::TouchKeys[0]);
-	Touch_Input_Mapping_Context->MapKey(IA_Float2D_Touch2,EKeys::TouchKeys[1]);
-
-	if (UInputComponent* InputCom=this->GetOwner()->InputComponent)
-	{
-		if (UEnhancedInputComponent* EnhancedInputCom=Cast<UEnhancedInputComponent>(InputCom))
-		{
-			EnhancedInputCom->BindAction(IA_Float2D_Touch1,ETriggerEvent::Started,this,&UTouchComponent::Touch1StartedEvent);
-			EnhancedInputCom->BindAction(IA_Float2D_Touch1,ETriggerEvent::Triggered,this,&UTouchComponent::Touch1TriggeredEvent);
-			EnhancedInputCom->BindAction(IA_Float2D_Touch1,ETriggerEvent::Completed,this,&UTouchComponent::Touch1CompletedEvent);
-
-			EnhancedInputCom->BindAction(IA_Float2D_Touch2,ETriggerEvent::Started,this,&UTouchComponent::Touch2StartedEvent);
-			EnhancedInputCom->BindAction(IA_Float2D_Touch2,ETriggerEvent::Triggered,this,&UTouchComponent::Touch2TriggeredEvent);
-			EnhancedInputCom->BindAction(IA_Float2D_Touch2,ETriggerEvent::Completed,this,&UTouchComponent::Touch2CompletedEvent);
-		}
-
-		
-	}
-
-	
-	
+	Touch_1_Moving.Broadcast(Value.GetValue().Get<FVector>());
 }
 
-void UTouchComponent::RegisterInputMappingContextToEnhanceInoput() const
+void UTouchComponent::Touch1Released_Internal(const FInputActionInstance& Value)
 {
-	//获取该组件Owner的控制器
-	if (APlayerController* PC=Cast<APlayerController>(Cast<APawn>(this->GetOwner())->GetController()))
-	{
-		//通过控制器获取 增强输入 本地玩家的子系统
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(Touch_Input_Mapping_Context,InputPriority);
-		}
-	}
+	Touch_1_End.Broadcast(Value.GetValue().Get<FVector>());
 }
+
+void UTouchComponent::Touch2Pressed_Internal(const FInputActionInstance& Value)
+{
+	Touch_2_Start.Broadcast(Value.GetValue().Get<FVector>());
+}
+
+void UTouchComponent::Touch2Moved_Internal(const FInputActionInstance& Value)
+{
+	Touch_2_Moving.Broadcast(Value.GetValue().Get<FVector>());
+}
+
+void UTouchComponent::Touch2Released_Internal(const FInputActionInstance& Value)
+{
+	Touch_2_End.Broadcast(Value.GetValue().Get<FVector>());
+}
+
+
+
 
