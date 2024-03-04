@@ -105,7 +105,7 @@ void UTouchBaseWidget::BindTouchDelegate()
 			UTouchComponent* TouchComponent = Cast<UTouchComponent>(ActorComponent);
 			if (TouchComponent)
 			{
-				TouchComponent->DelegateBind(10, true, this, "TouchIndexLocation");
+				//TouchComponent->DelegateBind(10, true, this, "TouchIndexLocation");
 				
 				//绑定函数的触碰组件灭活时调用
 				FScriptDelegate ScriptDelegate;
@@ -148,7 +148,7 @@ void UTouchBaseWidget::SetIndexTouchDelegate(bool bDelegateBind, uint8 FingerInd
 	UTouchComponent* TouchComponent = Cast<UTouchComponent>(GetOwningPlayer()->GetComponentByClass(UTouchComponent::StaticClass()));
 	if (TouchComponent)
 	{
-		TouchComponent->DelegateBind(FingerIndex, bDelegateBind, this, "TouchMovedLocation");
+		//TouchComponent->DelegateBind(FingerIndex, bDelegateBind, this, "TouchMovedLocation");
 	}
 }
 
