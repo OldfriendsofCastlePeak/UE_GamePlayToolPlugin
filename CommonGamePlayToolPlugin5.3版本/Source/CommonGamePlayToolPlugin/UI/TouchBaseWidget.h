@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "../Lib/TouchUILib.h"
 #include "TouchBaseWidget.generated.h"
 
 /* 多播指定接收到的调度器 */
@@ -17,43 +18,41 @@ class COMMONGAMEPLAYTOOLPLUGIN_API UTouchBaseWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	/* 父类UI */
-	UPROPERTY(BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		TObjectPtr<UWidget> ParentWidget;
+	/* 用于指示UI是否禁用触碰输入 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	bool bDisabled = false;
+	
+	/* UI的父级UI */
+	UPROPERTY(BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	TObjectPtr<UWidget> ParentWidget;
 
-	/* 本地位置,包括嵌套布局后的位置 */
-	UPROPERTY(BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		FVector2D LocalWidgetPosition;
+	/* UI的本地位置,包括嵌套布局后的位置 */
+	UPROPERTY(BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	FVector2D LocalWidgetPosition;
 
 	/* 自定义偏移位置 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		FVector2D CustomOffsetPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	FVector2D CustomOffsetPosition;
 
 	/* 触发偏移位置 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		FVector2D TriggerOffsetPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	FVector2D TriggerOffsetPosition;
 
 	/* 最后触发位置 */
-	UPROPERTY(BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		FVector LastTriggerLocation;
+	UPROPERTY(BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	FVector LastTriggerLocation;
 
-	/** 禁用图片设置 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		FSlateBrush DisabledSlateBrush;
+	/* UI图片设置 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	FSlateBrush DisabledSlateBrush;
 
-	/** * 自定义触发 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		bool bCustomTrigger;
-
-	/** * 禁用 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|Variable")
-		bool bDisabled = false;
+	/* 自定义触发 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UTouchBaseWidget|TouchInput")
+	bool bCustomTrigger;
 	
-	
-
 	/* 所有接收到的调度器 */
 	UPROPERTY(BlueprintAssignable, Category = "UTouchBaseWidget|On")
-		FOnPressed OnTouchLocation;
+	FOnPressed OnTouchLocation;
 
 protected:
 	
@@ -62,65 +61,32 @@ protected:
 	// Called when the game starts
 	virtual void NativeConstruct() override;
 
+	//UI的初始化事件,顺序为NativeOnInitialized->NativePreConstruct->NativeConstruct
 	virtual void NativeOnInitialized() override;
 
-
+	
 public:
-#pragma region 获取UI大小信息
-
-	/**
-	 * 获取控件基本大小(设计中的大小).
-	 * @return 返回控件基本大小
-	 */
-	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Size")
-	FVector2D GetWidgetAbsolutionSize();
-	
-	/**
-	 * 获取控件基本大小(设计中的大小).
-	 * @return 返回控件基本大小
-	 */
-	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Size")
-	FVector2D GetWidgetBaseSize();
-
-	/**
-	 * 获取控件受DPI影响的大小,例如:DPI设置的1080的DPI为1,则1440的DPI为1.333333,此时大小则为设计中的UI大小*1.333333
-	 * @return 返回控件的显示大小
-	 */
-	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Size")
-	FVector2D GetWidgetDPISize();
-	
-	/**
-	 * 获取控件的显示大小,计算公式为:UI设计大小*DPI*UI的Tansform的Scale属性
-	 * @return 返回控件的显示大小
-	 */
-	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Size")
-	FVector2D GetWidgetShowSize();
-	
-#pragma endregion
-
 #pragma region 获取UI位置信息
-	/**/
-	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Location")
-	FVector2D GetWidgetAbsolutePosition();
-	
 	/**
-	 * 获取UI在本地空间中的位置,测试发现锚点在左上(0,0)时,返回的结果为UI的位置加其对应的宽高,
-	 * 例如:位置为X:100,Y:200,宽为100,高为100,传入X:0.5,Y:0返回X:100+100*0.5,Y:200+100*0
-	 * @param InVector 
-	 * @return 返回UI在本地空间中的位置
-	 */
+	* 获取本地位置,包括嵌套布局后的偏移
+	* @return 
+	*/
 	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Location")
-	FVector2D GetWidgetInLocalCoordinatesLocation(const FVector2D InVector);
-
-	/**
-	 * 获取本地位置,包括嵌套布局后的偏移
-	 * @return 
-	 */
-	UFUNCTION(BlueprintPure, Category = "UTouchBaseWidget|Location")
-	virtual FVector2D GetLocalPosition();
+	FVector2D GetLocalPosition();
 
 	
 #pragma endregion
+	/* 用于绑定到UTouchComponent来接收触碰输入使用 */
+	UFUNCTION()
+	virtual void Touch_Pressed_Internal(const FVector& Location, uint8 FingerIndex);
+
+	/* 用于绑定到UTouchComponent来接收触碰输入使用 */
+	UFUNCTION()
+	virtual void Touch_Moved_Internal(const FVector& Location, uint8 FingerIndex);
+
+	/* 用于绑定到UTouchComponent来接收触碰输入使用 */
+	UFUNCTION()
+	virtual void Touch_Released_Internal(const FVector& Location, uint8 FingerIndex);
 	
 	/* 绑定触碰委托到UI */
 	UFUNCTION(BlueprintCallable, Category = "Function")
@@ -128,7 +94,7 @@ public:
 
 	/* 接收触碰委托的位置和索引 */
 	UFUNCTION(BlueprintCallable, Category = "UTouchBaseWidget|Function")
-		virtual void TouchIndexLocation(const FVector& Location, uint8 FingerIndex);
+	virtual void TouchIndexLocation(const FVector& Location, uint8 FingerIndex);
 
 	/** * 设置触控是否绑定 */
 	UFUNCTION(BlueprintCallable, Category = "UTouchBaseWidget|Function")
@@ -144,9 +110,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UTouchBaseWidget|Function")
 		virtual bool IsTouchLocation(const FVector& Location);
 
-	/** * 设置禁用  */
-	UFUNCTION(BlueprintCallable, Category = "UTouchBaseWidget|Function")
-		virtual void SetDisabled(bool bIsDisabled);
+
 
 	/** * 播放动画 */
 	UFUNCTION(BlueprintCallable, Category = "UTouchBaseWidget|Function")

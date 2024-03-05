@@ -3,9 +3,7 @@
 
 #include "TouchBaseWidget.h"
 #include "Components/PanelWidget.h"
-#include "../Component/TouchComponent.h"
-#include "Kismet/KismetMathLibrary.h" //官方函数库
-#include "Runtime/Engine/Public/DelayAction.h" //延迟的函数库
+#include "../Component/Touch/TouchComponent.h"
 
 #include "Runtime/UMG/Public/Blueprint/WidgetLayoutLibrary.h"
 
@@ -13,66 +11,30 @@
 void UTouchBaseWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
-	SetDisabled(bDisabled);
 }
 
 void UTouchBaseWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
 }
 
 void UTouchBaseWidget::NativeOnInitialized()
 {
+	
 	Super::NativeOnInitialized();
-	if (bCustomTrigger == false)
-	{
-		BindTouchDelegate();
-	}
+
+	//当bCustomTrigger为false时,将绑定默认的委托
+	//if (!bCustomTrigger) BindTouchDelegate();
 	
 }
-
-
-#pragma region 获取UI大小信息
-FVector2D UTouchBaseWidget::GetWidgetAbsolutionSize()
-{
-	return GetPaintSpaceGeometry().GetAbsoluteSize();
-}
-
-FVector2D UTouchBaseWidget::GetWidgetBaseSize()
-{
-	return GetPaintSpaceGeometry().GetLocalSize();
-}
-
-FVector2D UTouchBaseWidget::GetWidgetDPISize()
-{
-	return GetPaintSpaceGeometry().GetLocalSize()*UWidgetLayoutLibrary::GetViewportScale(this);
-}
-
-FVector2D UTouchBaseWidget::GetWidgetShowSize()
-{
-	return GetPaintSpaceGeometry().GetLocalSize()*UWidgetLayoutLibrary::GetViewportScale(this) * GetRenderTransform().Scale;
-}
-
-FVector2D UTouchBaseWidget::GetWidgetAbsolutePosition()
-{
-	return GetPaintSpaceGeometry().GetAbsolutePosition();
-}
-
-FVector2D UTouchBaseWidget::GetWidgetInLocalCoordinatesLocation(const FVector2D InVector)
-{
-	return  GetPaintSpaceGeometry().GetLocalPositionAtCoordinates({ InVector.X,InVector.Y });
-}
-#pragma endregion
-
 #pragma region 获取UI位置信息
 FVector2D UTouchBaseWidget::GetLocalPosition()
 {
 	//获取UI在本地空间的左上位置
-	FVector2D Offset = GetPaintSpaceGeometry().GetLocalPositionAtCoordinates({ 0.0,0.0 });
+	FVector2D Offset =GetPaintSpaceGeometry().GetLocalPositionAtCoordinates({ 0.0,0.0 });
 
 	//获取父UI
-	const UWidget* TemParentWidget = GetParent();
+	const UWidget* TemParentWidget =GetParent();
 
 	//
 	while (TemParentWidget)
@@ -94,39 +56,91 @@ FVector2D UTouchBaseWidget::GetLocalPosition()
 	return Offset + CustomOffsetPosition;
 }
 
+
 #pragma endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void UTouchBaseWidget::BindTouchDelegate()
 {
+	//检测UI是否有一个有效的APlayerController
 	if (GetOwningPlayer())
 	{
-		UActorComponent* ActorComponent = GetOwningPlayer()->GetComponentByClass(UTouchComponent::StaticClass());
+		//获取APlayerController控制的APawn
+		UActorComponent* ActorComponent = GetOwningPlayer()->GetPawn()->GetComponentByClass(UTouchComponent::StaticClass());
 		if (ActorComponent)
 		{
+			//获取APawn上的UTouchComponent
 			UTouchComponent* TouchComponent = Cast<UTouchComponent>(ActorComponent);
 			if (TouchComponent)
 			{
-				//TouchComponent->DelegateBind(10, true, this, "TouchIndexLocation");
-				
-				//绑定函数的触碰组件灭活时调用
-				FScriptDelegate ScriptDelegate;
-				ScriptDelegate.BindUFunction(this, "ComponentDeactivated"); 
-				TouchComponent->OnComponentDeactivated.Add(ScriptDelegate);
-				return;
+				// //绑定触碰按下委托
+				// FScriptDelegate Pressed_Delegate;
+				// Pressed_Delegate.BindUFunction(this,"Touch_Pressed_Internal");
+				// TouchComponent->On_Touch_Released.Add(Pressed_Delegate);
+				//
+				// //绑定触碰移动委托
+				// FScriptDelegate Moved_Delegate;
+				// Pressed_Delegate.BindUFunction(this,"Touch_Moved_Internal");
+				// TouchComponent->On_Touch_Released.Add(Pressed_Delegate);
+				//
+				// //绑定触碰松开委托
+				// FScriptDelegate Released_Delegate;
+				// Pressed_Delegate.BindUFunction(this,"Touch_Released_Internal");
+				// TouchComponent->On_Touch_Released.Add(Pressed_Delegate);
+				//
+				// //绑定到触碰组件灭活时调用
+				// FScriptDelegate ScriptDelegate;
+				// ScriptDelegate.BindUFunction(this, "ComponentDeactivated"); 
+				// TouchComponent->OnComponentDeactivated.Add(ScriptDelegate);
 			}
 		}
 	}
-	if(GetWorld())
-	{
-		//这一步可能无意义
-		// FLatentActionManager& LatentActionManager = GetWorld()->GetLatentActionManager();
-		// FLatentActionInfo Latentinfo;
-		// Latentinfo.CallbackTarget = this;
-		// Latentinfo.ExecutionFunction = "BindTouchDelegate";
-		// Latentinfo.Linkage = 0;
-		// Latentinfo.UUID = UKismetMathLibrary::RandomIntegerInRange(0, 222);
-		// LatentActionManager.AddNewAction(this, Latentinfo.UUID, new FDelayAction(0.2, Latentinfo));
-	}
 }
+
+void UTouchBaseWidget::Touch_Pressed_Internal(const FVector& Location, uint8 FingerIndex)
+{
+	
+}
+
+void UTouchBaseWidget::Touch_Moved_Internal(const FVector& Location, uint8 FingerIndex)
+{
+	
+}
+
+void UTouchBaseWidget::Touch_Released_Internal(const FVector& Location, uint8 FingerIndex)
+{
+	
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 void UTouchBaseWidget::TouchIndexLocation(const FVector& Location, uint8 FingerIndex)
@@ -166,7 +180,7 @@ bool UTouchBaseWidget::IsTouchLocation(const FVector& Location)
 	const float Viewport_Scale = UWidgetLayoutLibrary::GetViewportScale(this);
 	
 	//获取控件大小
-	const FVector2D UI_Size = GetWidgetShowSize();
+	const FVector2D UI_Size = UTouchUILib::GetWidgetShowSize(this);
 
 	//获取控件左上角位置
 	LocalWidgetPosition = GetLocalPosition();
@@ -186,10 +200,6 @@ bool UTouchBaseWidget::IsTouchLocation(const FVector& Location)
 	return bX_Inrange&&bY_Inrange;
 }
 
-void UTouchBaseWidget::SetDisabled(bool bIsDisabled)
-{
-	bDisabled = bIsDisabled;
-}
 
 void UTouchBaseWidget::TriggerInedxAnimation(int Index)
 {
@@ -198,7 +208,6 @@ void UTouchBaseWidget::TriggerInedxAnimation(int Index)
 
 void UTouchBaseWidget::ComponentDeactivated(UActorComponent* ActorComponent)
 {
-	
 	BindTouchDelegate();
 }
 
