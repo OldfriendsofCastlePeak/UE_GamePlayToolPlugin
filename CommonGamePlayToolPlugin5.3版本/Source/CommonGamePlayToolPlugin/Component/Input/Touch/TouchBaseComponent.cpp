@@ -37,7 +37,7 @@ void UTouchBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	// ...
 }
 
-void UTouchBaseComponent::RegisterTouchInput()
+void UTouchBaseComponent::RegisterInputMapping()
 {
 	//获取输入组件:只有是Actor就有UInputComponent
 	if (UEnhancedInputComponent* EnhancedInputComponent=Cast<UEnhancedInputComponent>(this->GetOwner()->InputComponent))
@@ -59,7 +59,7 @@ void UTouchBaseComponent::RegisterTouchInput()
     			Tem_IA_Float2D_Touch->ValueType=EInputActionValueType::Axis3D;
 
     			//将UInputAction对象添加到TMap容器中
-    			Touch_Input_Action_Array.Add(TEXT("IA_Float2D_Touch1"),Tem_IA_Float2D_Touch);
+    			Touch_Input_Action_Map.Add(TEXT("IA_Float2D_Touch1"),Tem_IA_Float2D_Touch);
 
     			//添加映射
     			FEnhancedActionKeyMapping& EnhancedActionKeyMapping= Touch_Input_Mapping_Context->MapKey(Tem_IA_Float2D_Touch,EKeys::TouchKeys[0]);
@@ -78,7 +78,7 @@ void UTouchBaseComponent::RegisterTouchInput()
     	}
 }
 
-void UTouchBaseComponent::UnRegisterTouchInput()
+void UTouchBaseComponent::UnRegisterInputMapping()
 {
 	if (Touch_Input_Mapping_Context)
 	{

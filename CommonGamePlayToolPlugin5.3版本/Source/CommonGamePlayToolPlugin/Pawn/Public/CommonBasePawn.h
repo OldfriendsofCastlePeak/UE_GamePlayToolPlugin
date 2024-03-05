@@ -114,7 +114,7 @@ public:
 	float Pawn_Min_Z_Value=500;
 #pragma endregion
 
-#pragma region SpringArm_Camera的限定属性
+#pragma region SpringArm_Camera
 	
 	/* SpringArm_Camera旋转Pitch值范围,X值表示最小值,Y值表示最大值 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
@@ -131,11 +131,17 @@ public:
 	/* 属性SpringArm_Camera移动系数,X:表示X方向的移动,Y:表示Y方向的移动 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
 	FVector2D SpringArm_Camera_Move_Param=FVector2D(-1.f,-1.f);
-	
+
+	/* 用于使用弹簧臂相机时的Pawn移动 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|SpringArm_Camera")
+	void SpringArm_Camera_Move_Pawn(const FVector2D& Value);
+
+	/* 用于使用弹簧臂相机时的Pawn旋转 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|SpringArm_Camera")
+	void SpringArm_Camera_Rotate_Pawn(const FVector2D& Value);
 #pragma endregion
 
-#pragma region Normal_Camera的限定属性
-
+#pragma region Normal_Camera
 	/* Normal_Camera可以转为SpringArm_Camera时的Pitch值范围,X值表示最小值,Y值表示最大值,最好不要更改 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Normal_Camera")
 	FVector2D Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range=FVector2D(-80.f,-1.f);
@@ -151,7 +157,14 @@ public:
 	/* 属性Normal_Camera移动参数,X:表示X方向的移动,Y:表示Y方向的移动 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Normal_Camera")
 	FVector2D Normal_Camera_Move_Param=FVector2D(-1.f,-1.f);
-	
+
+	/* 用于使用普通相机时的Pawn移动 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Normal_Camera")
+	void Normal_Camera_Move_Pawn(const FVector2D& Value);
+
+	/* 用于使用普通相机时的Pawn旋转 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Normal_Camera")
+	void Normal_Camera_Rotate_Pawn(const FVector2D& Value);
 #pragma endregion
 
 #pragma region 处理相关功能需要的属性
@@ -253,26 +266,11 @@ private:
 	void SpringArm_TimeLine_Update();
 	
 public:
+#pragma region 相机转换
 	/* 检测当前视口角度是否处于可以从Normal_Camera转为SpingArm_Camera的Pitch角度范围内 */
 	UFUNCTION(BlueprintPure,Category="ACommonBasePawn|Camera")
 	bool Can_Normal_Camera_To_SpringArm_Camera_Pitch_Range();
 	
-	/* 用于使用弹簧臂相机时的Pawn移动 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|SpringArmCamera")
-	void SpringArm_Camera_Move_Pawn(const FVector2D& Value);
-
-	/* 用于使用弹簧臂相机时的Pawn旋转 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|SpringArmCamera")
-	void SpringArm_Camera_Rotate_Pawn(const FVector2D& Value);
-
-	/* 用于使用普通相机时的Pawn移动 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalCamera")
-	void Normal_Camera_Move_Pawn(const FVector2D& Value);
-
-	/* 用于使用普通相机时的Pawn旋转 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalArmCamera")
-	void Normal_Camera_Rotate_Pawn(const FVector2D& Value);
-
 	/* 用于将普通相机转为弹簧臂相机 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalArmCamera")
 	bool Normal_Camera_To_SpringArm_Camera();
@@ -280,7 +278,9 @@ public:
 	/* 用于将弹簧臂相机转为普通相机 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalArmCamera")
 	bool SpringArm_Camera_To_Normal_Camera();
+#pragma endregion
 
+#pragma region 绕点旋转
 	/* Pawn围绕当前点位旋转 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalArmCamera")
 	void Pawn_Round_Event();
@@ -289,6 +289,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalArmCamera")
 	void Reset_Auto_Rotate_Total_Time();
 
+#pragma endregion
+
+#pragma region 视口过渡
+	
 	/* 直接设置视口的位置角度 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|Camera|NormalArmCamera")
 	void Set_Camera_View_By_Actor(const FVector& InVector,const FRotator& InRotator);

@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "../InputBaseComponent.h"
 #include "KeyboardInputComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FKeyboardInputDelegate,float,Value);
 
 UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent))
-class COMMONGAMEPLAYTOOLPLUGIN_API UKeyboardInputComponent : public UActorComponent
+class COMMONGAMEPLAYTOOLPLUGIN_API UKeyboardInputComponent : public UInputBaseComponent
 {
 	GENERATED_BODY()
 
@@ -26,21 +26,19 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
+	/* 注册触碰输入映射 */
+	virtual void RegisterInputMapping() override;
+    
+	/* 取消注册触碰输入映射 */
+	virtual void UnRegisterInputMapping() override;
+	
 	/* 用来存放键盘输入相关的UInputMappingContext */
 	UPROPERTY(BlueprintReadWrite,Category="UMouseInputComponent|Input")
-	class UInputMappingContext* KeyboardInputMappingContextMap=nullptr;
+	UInputMappingContext* KeyboardInputMappingContextMap=nullptr;
 
 	/* 用来存放键盘输入相关的UInputAction的TMap */
 	UPROPERTY(BlueprintReadWrite,Category="UMouseInputComponent|Input")
-	TMap<FName,class UInputAction*> KeyboardInputActionMap;
-
-	/* 注册键盘输入相关映射 */
-	UFUNCTION(BlueprintCallable,Category="UMouseInputComponent|Input")
-	void RegisterMouseInputMapping();
-
-	/* 移除键盘输入相关映射 */
-	UFUNCTION(BlueprintCallable,Category="UMouseInputComponent|Input")
-	void UnRegisterMouseInputMapping();
+	TMap<FName,UInputAction*> KeyboardInputActionMap;
 
 	/* 键盘A输入委托 */
 	UPROPERTY(BlueprintAssignable,Category="UKeyboardInputComponent|Keyboard")

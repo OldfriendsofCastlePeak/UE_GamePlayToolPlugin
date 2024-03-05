@@ -21,7 +21,7 @@ void UInputBaseComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+	if (bAuto_Register_Input_Mapping) RegisterInputMapping();
 }
 
 

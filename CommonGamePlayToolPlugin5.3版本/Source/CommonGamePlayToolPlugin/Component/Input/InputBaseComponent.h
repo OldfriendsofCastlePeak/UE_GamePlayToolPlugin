@@ -28,13 +28,16 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UInputBaseComponent|Register")
+	bool bAuto_Register_Input_Mapping=true;
+	
 	/* 注册触碰输入映射 */
-	UFUNCTION(BlueprintCallable)
-	virtual void RegisterTouchInput(){};
+	UFUNCTION(BlueprintCallable,Category="UInputBaseComponent|Register")
+	virtual void RegisterInputMapping(){};
     
 	/* 取消注册触碰输入映射 */
-	UFUNCTION(BlueprintCallable)
-	virtual void UnRegisterTouchInput(){};
+	UFUNCTION(BlueprintCallable,Category="UInputBaseComponent|Register")
+	virtual void UnRegisterInputMapping(){};
 
 	/* 检测APlayerController上是否有UInputBaseComponent组件 */
 	UFUNCTION(BlueprintPure)

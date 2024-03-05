@@ -25,12 +25,10 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	/* 注册触碰输入映射 */
-    UFUNCTION(BlueprintCallable)
-    virtual void RegisterTouchInput() override;
+    virtual void RegisterInputMapping() override;
     
     /* 取消注册触碰输入映射 */
-    UFUNCTION(BlueprintCallable)
-    virtual void UnRegisterTouchInput() override;
+    virtual void UnRegisterInputMapping() override;
 
 
 

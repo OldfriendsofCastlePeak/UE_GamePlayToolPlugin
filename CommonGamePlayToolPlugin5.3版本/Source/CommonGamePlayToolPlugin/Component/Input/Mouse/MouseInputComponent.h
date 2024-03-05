@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "../InputBaseComponent.h"
 #include "MouseInputComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMouseInput_FVector2D,FVector2D,Value);
@@ -11,7 +11,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMouseInput_Float1D,float,Value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMouseInput_Bool,bool,Value);
 
 UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent))
-class COMMONGAMEPLAYTOOLPLUGIN_API UMouseInputComponent : public UActorComponent
+class COMMONGAMEPLAYTOOLPLUGIN_API UMouseInputComponent : public UInputBaseComponent
 {
 	GENERATED_BODY()
 
@@ -30,19 +30,17 @@ public:
 
 	/* 用来存放鼠标输入相关的UInputMappingContext */
 	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn|Input")
-	class UInputMappingContext* MouseInputMappingContextMap;
+	UInputMappingContext* MouseInputMappingContextMap;
 
 	/* 用来存放鼠标输入相关的UInputAction的TMap */
 	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn|Input")
-	TMap<FName,class UInputAction*> MouseInputActionMap;
+	TMap<FName,UInputAction*> MouseInputActionMap;
 
 	/* 注册鼠标输入相关映射 */
-	UFUNCTION(BlueprintCallable,Category="UMouseInputComponent|Input")
-	void RegisterMouseInputMapping();
+	virtual void RegisterInputMapping() override;
 
 	/* 移除鼠标输入相关映射 */
-	UFUNCTION(BlueprintCallable,Category="UMouseInputComponent|Input")
-	void UnRegisterMouseInputMapping();
+	virtual void UnRegisterInputMapping() override;
 	
 	/* 鼠标XY轴输入委托 */
 	UPROPERTY(BlueprintAssignable,Category="UMouseInputComponent|MouseInput")

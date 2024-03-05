@@ -34,13 +34,13 @@ void USingleTouchComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	// ...
 }
 
-void USingleTouchComponent::RegisterTouchInput()
+void USingleTouchComponent::RegisterInputMapping()
 {
 	//检测Touch_Input_Mapping_Context是否有效,防止多次创建
 	if (!Touch_Input_Mapping_Context) Touch_Input_Mapping_Context=NewObject<UInputMappingContext>(this,TEXT("MouseInputMappingContextMap"));
 
 	//检测数组是否有UInputAction,防止多次创建
-	if (Touch_Input_Action_Array.Num()==0)
+	if (Touch_Input_Action_Map.Num()==0)
 	{
 		UInputAction* Tem_IA_Float2D_Touch=NewObject<UInputAction>(this,TEXT("IA_Float2D_Touch1"));
 		Tem_IA_Float2D_Touch->bConsumeInput=true;
@@ -51,7 +51,7 @@ void USingleTouchComponent::RegisterTouchInput()
 		Tem_IA_Float2D_Touch->ValueType=EInputActionValueType::Axis3D;
 
 		//将UInputAction对象添加到TMap容器中
-		Touch_Input_Action_Array.Add(TEXT("IA_Float2D_Touch1"),Tem_IA_Float2D_Touch);
+		Touch_Input_Action_Map.Add(TEXT("IA_Float2D_Touch1"),Tem_IA_Float2D_Touch);
 
 		//添加映射
 		FEnhancedActionKeyMapping& EnhancedActionKeyMapping= Touch_Input_Mapping_Context->MapKey(Tem_IA_Float2D_Touch,EKeys::TouchKeys[0]);
@@ -63,25 +63,36 @@ void USingleTouchComponent::RegisterTouchInput()
 		//获取APlayerController:增强输入需要使用AddMappingContext方法来添加映射
     	if (const APlayerController* PlayerController=Cast<APlayerController>(this->GetOwner()->GetInstigatorController()))
     	{
-    		//添加到上下文中
     		if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
     		{
     			//先检查一下,防止重复注册
-			    if (EnhancedInputLocalPlayerSubsystem->HasMappingContext(Touch_Input_Mapping_Context)) return;
+    			const TArray<TUniquePtr<FEnhancedInputActionEventBinding>>* ActionEventBindings= &EnhancedInputComponent->GetActionEventBindings();
+    			bool bHasRegister=false;
+    			for (int i=0;i<ActionEventBindings->Num();i++)
+               {
+	               if (EnhancedInputComponent->GetActionEventBindings()[i].Get()->GetAction()==Touch_Input_Action_Map.FindChecked(TEXT("IA_Float2D_Touch1")))
+	               {
+	               		bHasRegister=true;
+	               		return;
+	               }
+               }
+
+			    if (bHasRegister) return;
     			
     			//添加触碰的Pressed、Moved、Released的委托绑定
-    			EnhancedInputComponent->BindAction(Touch_Input_Action_Array.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Started,this,&UTouchBaseComponent::Touch_Released_Internal_Event);
-    			EnhancedInputComponent->BindAction(Touch_Input_Action_Array.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Triggered,this,&UTouchBaseComponent::Touch_Moved_Internal_Event);
-    			EnhancedInputComponent->BindAction(Touch_Input_Action_Array.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Completed,this,&UTouchBaseComponent::Touch_Released_Internal_Event);
+    			EnhancedInputComponent->BindAction(Touch_Input_Action_Map.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Started,this,&UTouchBaseComponent::Touch_Released_Internal_Event);
+    			EnhancedInputComponent->BindAction(Touch_Input_Action_Map.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Triggered,this,&UTouchBaseComponent::Touch_Moved_Internal_Event);
+    			EnhancedInputComponent->BindAction(Touch_Input_Action_Map.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Completed,this,&UTouchBaseComponent::Touch_Released_Internal_Event);
 
     			//注册
     			EnhancedInputLocalPlayerSubsystem->AddMappingContext(Touch_Input_Mapping_Context,0);
+    			
     		}
     	}
     }
 }
 
-void USingleTouchComponent::UnRegisterTouchInput()
+void USingleTouchComponent::UnRegisterInputMapping()
 {
 	if (Touch_Input_Mapping_Context)
 	{
@@ -90,6 +101,7 @@ void USingleTouchComponent::UnRegisterTouchInput()
 			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 			{
 				EnhancedInputLocalPlayerSubsystem->RemoveMappingContext(Touch_Input_Mapping_Context);
+				bAuto_Register_Input_Mapping=false;
 			}
 		}
 	}

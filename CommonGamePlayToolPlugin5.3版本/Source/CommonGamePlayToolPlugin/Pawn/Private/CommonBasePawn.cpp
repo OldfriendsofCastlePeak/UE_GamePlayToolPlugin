@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraActor.h"
+#include "CommonGamePlayToolPlugin/Component/Input/InputBaseComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -63,6 +64,16 @@ void ACommonBasePawn::Tick(float DeltaTime)
 void ACommonBasePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	//遍历查找当前Pawn上的UInputBaseComponent,再调用一次注册,防止调用OnPossess之后Pawn的输入映射清空的问题
+	TArray<UInputBaseComponent*> InputBaseComponentArray;
+	this->GetComponents(InputBaseComponentArray);
+	for (UInputBaseComponent* InputBaseComponent:InputBaseComponentArray)
+	{
+		if (InputBaseComponent->bAuto_Register_Input_Mapping) InputBaseComponent->RegisterInputMapping();
+	}
+	
+	
 	SetupPlayerInputComponent_Internal();
 }
 
@@ -560,10 +571,10 @@ bool ACommonBasePawn::Normal_Camera_To_SpringArm_Camera_Implementation()
 	if (SpringArm_Camera->IsActive())
 	{
 		//当弹簧臂相机激活时
-		if (!SpringArm->bEnableCameraLag)
-		{
-			SpringArm->bEnableCameraLag=true;
-		}
+		if (!SpringArm->bEnableCameraLag) SpringArm->bEnableCameraLag=true;
+
+		if (!SpringArm->bEnableCameraRotationLag) SpringArm->bEnableCameraRotationLag=true;
+		
 		return true;
 	}
 	

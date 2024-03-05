@@ -2,8 +2,10 @@
 
 
 #include "TouchBaseWidget.h"
+
+#include "CommonGamePlayToolPlugin/Component/Input/Touch/TouchComponent.h"
 #include "Components/PanelWidget.h"
-#include "../Component/Touch/TouchComponent.h"
+
 
 #include "Runtime/UMG/Public/Blueprint/WidgetLayoutLibrary.h"
 

@@ -29,12 +29,10 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	/* 注册触碰输入映射 */
-	UFUNCTION(BlueprintCallable)
-	virtual void RegisterTouchInput() override;
+	virtual void RegisterInputMapping() override;
     
 	/* 取消注册触碰输入映射 */
-	UFUNCTION(BlueprintCallable)
-	virtual void UnRegisterTouchInput() override;
+	virtual void UnRegisterInputMapping() override;
 
 	/* 用于存储触碰状态的数组 */
 	UPROPERTY(BlueprintReadWrite, Category = "Tocuh|Input")
@@ -42,11 +40,11 @@ public:
 	
 	/* 用于存储UInputAction行为的UInputMappingContext */
 	UPROPERTY(BlueprintReadWrite,Category="Tocuh|Input")
-	class UInputMappingContext* Touch_Input_Mapping_Context=nullptr;
+	UInputMappingContext* Touch_Input_Mapping_Context=nullptr;
 
 	/* 用于存储UInputAction的数组,存储0~9的触碰 */
 	UPROPERTY(BlueprintReadWrite,Category="Tocuh|Input")
-	TMap<FName,UInputAction*>Touch_Input_Action_Array;
+	TMap<FName,UInputAction*>Touch_Input_Action_Map;
 
 	/* 用于通知触碰开始的委托 */
 	UPROPERTY(BlueprintAssignable,Category="Tocuh|Input")

@@ -5,7 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
-#include "../../InputModifier/InputModifierAddVector.h"
+#include "../../../InputModifier/InputModifierAddVector.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
 // Sets default values for this component's properties
@@ -61,7 +61,7 @@ void UTouchComponent::RegisterTouchInput()
     				Tem_IA_Float2D_Touch->ValueType=EInputActionValueType::Axis3D;
 
     				//将UInputAction对象添加到TMap容器中
-    				Touch_Input_Action_Array.Add(*UInputActionName,Tem_IA_Float2D_Touch);
+    				Touch_Input_Action_Map.Add(*UInputActionName,Tem_IA_Float2D_Touch);
 
     				//添加映射
     				FEnhancedActionKeyMapping& EnhancedActionKeyMapping= Touch_Input_Mapping_Context->MapKey(Tem_IA_Float2D_Touch,EKeys::TouchKeys[i]);
