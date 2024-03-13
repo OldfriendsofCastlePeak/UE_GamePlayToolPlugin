@@ -4,6 +4,7 @@
 #include "PlaySequenceToolComponent.h"
 #include "Runtime/LevelSequence/Public/LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values for this component's properties
@@ -36,15 +37,36 @@ void UPlaySequenceToolComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	// ...
 }
 
-void UPlaySequenceToolComponent::PlayLevelSequence(ULevelSequence* InLevelSequenceAsset)
+void UPlaySequenceToolComponent::StopPlayLevelSequence_Implementation()
+{
+	//先检查SequencePlayer是否处于无效状态
+	if (!SequencePlayer) return;
+
+	//先检查SequencePlayer是否处于播放状态
+	if (!SequencePlayer->IsPlaying()) return;
+
+	//记录当前的时间、视野位置、视野角度
+	LastStopPlayFrame=SequencePlayer->GetCurrentTime().Time.GetFrame().Value;
+	LastViewLocation=UGameplayStatics::GetPlayerCameraManager(this,0)->GetCameraLocation();
+	LastViewRotate=UGameplayStatics::GetPlayerCameraManager(this,0)->GetCameraRotation();
+	bHad_Break=true;
+	
+	//退出播放
+	SequencePlayer->Stop();
+}
+
+void UPlaySequenceToolComponent::ResumePlayLevelSequence_Implementation()
+{
+	SequencePlayer->SetPlaybackPosition(FMovieSceneSequencePlaybackParams(FFrameTime(LastStopPlayFrame),EUpdatePositionMethod::Play));
+	bHad_Break=false;
+}
+
+void UPlaySequenceToolComponent::PlayLevelSequence(ULevelSequence* InLevelSequenceAsset,const FName Name)
 {
 	//检测资源是否有效
-	if (!InLevelSequenceAsset)
-	{
-		GEngine->AddOnScreenDebugMessage(-1,2.f,FColor::White,TEXT("播放关卡序列失败,因为传入的ULevelSequence无效"));
-		return;
-	}
-	
+	if (!InLevelSequenceAsset) return;
+
+	CurrentPlayName=Name;
 	
 	if (!SequencePlayer)
 	{
@@ -78,11 +100,13 @@ void UPlaySequenceToolComponent::PlayLevelSequence(ULevelSequence* InLevelSequen
 	SequencePlayer->Play();
 }
 
-void UPlaySequenceToolComponent::PlayActorLevelSequence(ALevelSequenceActor* InLevelSequenceActor)
+void UPlaySequenceToolComponent::PlayActorLevelSequence(ALevelSequenceActor* InLevelSequenceActor,const FName Name)
 {
 	//检查传入的ALevelSequenceActor是否有效.
 	if (InLevelSequenceActor==nullptr) return;
 
+	CurrentPlayName=Name;
+	
 	//获取有效的ULevelSequencePlayer
 	if (!SequencePlayer)
 	{
@@ -117,27 +141,27 @@ void UPlaySequenceToolComponent::PlayActorLevelSequence(ALevelSequenceActor* InL
 
 void UPlaySequenceToolComponent::OnSequencePlay_Internal()
 {
-	StartPlaySequenceEvent.Broadcast();
+	StartPlaySequenceEvent.Broadcast(CurrentPlayName);
 }
 
 void UPlaySequenceToolComponent::OnSequenceReversePlay_Internal()
 {
-	StartReversePlaySequence.Broadcast();
+	StartReversePlaySequence.Broadcast(CurrentPlayName);
 }
 
 void UPlaySequenceToolComponent::OnSequenceStop_Internal()
 {
-	StopPlaySequence.Broadcast();
+	StopPlaySequence.Broadcast(CurrentPlayName);
 }
 
 void UPlaySequenceToolComponent::OnSequencePause_Internal()
 {
-	PausePlaySequence.Broadcast();
+	PausePlaySequence.Broadcast(CurrentPlayName);
 }
 
 void UPlaySequenceToolComponent::OnSequenceFinalPlay_Internal()
 {
-	FinshPlaySequence.Broadcast();
+	FinshPlaySequence.Broadcast(CurrentPlayName);
 }
 
 

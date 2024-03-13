@@ -53,6 +53,7 @@ void UMouseInputComponent::RegisterInputMapping()
 		MouseInputMappingContextMap->MapKey(IA_Float2D_MouseXY,EKeys::MouseX);
 		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingMouseY= MouseInputMappingContextMap->MapKey(IA_Float2D_MouseXY,EKeys::MouseY);
 		FEnhancedActionKeyMappingMouseY.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
+		FEnhancedActionKeyMappingMouseY.Modifiers.Add(NewObject<UInputModifierNegate>());
 		
 		//IA_Bool_MouseLeftButton用来处理鼠标左键的输入
 		UInputAction* IA_Bool_MouseLeftButton=NewObject<UInputAction>(this,TEXT("IA_Bool_MouseLeftButton"));

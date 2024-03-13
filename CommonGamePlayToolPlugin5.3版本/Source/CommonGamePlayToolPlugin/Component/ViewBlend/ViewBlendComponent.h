@@ -3,11 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Camera/CameraComponent.h"
 #include "Components/ActorComponent.h"
 #include "ViewBlendComponent.generated.h"
 
-/* 声明一个委托类型 */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FViewToolDelegate);
 
 UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent),Blueprintable)
 class COMMONGAMEPLAYTOOLPLUGIN_API UViewBlendComponent : public UActorComponent
@@ -27,6 +26,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
+	/* 声明一个委托类型 */
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FViewToolDelegate);
+	
 	/* 当开始调用"Set View Target With Blend"执行的委托 */
 	UPROPERTY(BlueprintAssignable,Category="ViewToolComponent",meta = (DeprecatedProperty, DeprecationMessage = "委托待绑定,暂时不可使用"))
 	FViewToolDelegate OnBeginViewBlend;
@@ -54,3 +56,42 @@ public:
 private:
 	int CurrentPlayerIndex=0;
 };
+
+
+UCLASS()
+class ABlendViewPawn : public APawn
+{
+	GENERATED_BODY()
+public:
+	// Sets default values for this pawn's properties
+	ABlendViewPawn(const FObjectInitializer& ObjectInitializer)
+	 :Super(ObjectInitializer)
+	{
+		Scene=CreateDefaultSubobject<USceneComponent>("Root");
+		SetRootComponent(Scene);
+		Camera=CreateDefaultSubobject<UCameraComponent>("ABlendViewPawnCamera");
+		Camera->SetupAttachment(Scene);
+	}
+	UPROPERTY()
+	USceneComponent* Scene=nullptr;
+	
+	UPROPERTY()
+	UCameraComponent* Camera=nullptr;
+	
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

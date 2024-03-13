@@ -8,10 +8,9 @@
 #include "Components/ActorComponent.h"
 #include "PlaySequenceToolComponent.generated.h"
 
-/* 声明委托类型 */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSequencePlayerDelegate);
 
-UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent))
+
+UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent),Blueprintable,BlueprintType)
 class COMMONGAMEPLAYTOOLPLUGIN_API UPlaySequenceToolComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -28,7 +27,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-
+	/* 声明委托类型 */
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSequencePlayerDelegate,FName,Value);
+	
 	/* 当关卡序列开始播放时触发 */
 	UPROPERTY(BlueprintAssignable,Category="PlaySequenceToolComponent|SequencePlayer")
 	FSequencePlayerDelegate StartPlaySequenceEvent;
@@ -59,14 +60,43 @@ public:
 	/* ULevelSequencePlayer对象,用于播放 ULevelSequence */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="PlaySequenceToolComponent")
 	class ULevelSequencePlayer* SequencePlayer;
+
+	/* 用来表示是否已经中断Sequence播放 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="PlaySequenceToolComponent")
+	bool bHad_Break=false;
+
+	/* 上一次退出播放时处于的帧数,用于继续播放时使用 */
+	UPROPERTY(BlueprintReadWrite,Category="PlaySequenceToolComponent")
+	int32 LastStopPlayFrame=-1;
+
+	/* 上一次退出播放时视角的位置 */
+	UPROPERTY(BlueprintReadWrite,Category="PlaySequenceToolComponent")
+	FVector LastViewLocation;
+
+	/* 上一次退出播放时视角的方向 */
+	UPROPERTY(BlueprintReadWrite,Category="PlaySequenceToolComponent")
+	FRotator LastViewRotate;
+	
+	
+	/* 中断播放关卡序列 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="PlaySequenceToolComponent")
+	void StopPlayLevelSequence();
+	
+	/* 根据上一次中断位置继续播放关卡序列 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="PlaySequenceToolComponent")
+	void ResumePlayLevelSequence();
 	
 	/* 播放关卡序列 */
 	UFUNCTION(BlueprintCallable,Category="PlaySequenceToolComponent|SequencePlayer")
-	void PlayLevelSequence(class ULevelSequence* InLevelSequenceAsset);
+	void PlayLevelSequence(class ULevelSequence* InLevelSequenceAsset,const FName Name);
 
 	/* 播放关卡序列 */
 	UFUNCTION(BlueprintCallable,Category="PlaySequenceToolComponent|SequencePlayer")
-	void PlayActorLevelSequence(class ALevelSequenceActor* InLevelSequenceAsset);
+	void PlayActorLevelSequence(class ALevelSequenceActor* InLevelSequenceAsset,const FName Name);
+
+	/* 用于记录当前播放的Sequence的标识名,需要传入 */
+	UPROPERTY(BlueprintReadWrite)
+	FName CurrentPlayName;
 	
 	UFUNCTION()
 	void OnSequencePlay_Internal();
