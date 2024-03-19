@@ -13,7 +13,7 @@
 #include "CommonDefaultPawn.generated.h"
 
 UENUM(BlueprintType)
-enum class ECollisionShapeComponentType :uint8
+enum class ECollisionShapeComponentType
 {
 	SPhere,//球形
 	Capsule,//胶囊体
@@ -48,7 +48,7 @@ public:
 
 	/* 用于定义要创建的胶囊体形状 */
 	UPROPERTY(BlueprintReadWrite,EditAnywhere,Category="ACommonCustomDefaultPawn")
-	TEnumAsByte<ECollisionShapeComponentType>CollisionShapeComponentType=ECollisionShapeComponentType::SPhere;
+	ECollisionShapeComponentType CollisionShapeComponentType=ECollisionShapeComponentType::SPhere;
 	
 	/* 用于存放UPawnMovementComponent组件,需要一个碰撞组件作为根组件 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite,Category="ACommonCustomDefaultPawn")

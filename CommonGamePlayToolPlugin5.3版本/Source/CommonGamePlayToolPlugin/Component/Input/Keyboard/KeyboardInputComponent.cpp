@@ -43,29 +43,17 @@ void UKeyboardInputComponent::RegisterInputMapping()
 	//检测数组是否有UInputAction,防止多次创建
 	if (KeyboardInputActionMap.Num()==0)
 	{
-		//添加键盘输入W
+		//添加键盘输入W,将W的输入作为Y轴的正数
 		UInputAction* IA_Float2D_W=NewObject<UInputAction>(this,TEXT("IA_Float2D_W"));
 		IA_Float2D_W->bConsumeInput=bConsumeInput;
 		IA_Float2D_W->bTriggerWhenPaused=false;
 		IA_Float2D_W->bReserveAllMappings=false;
 		IA_Float2D_W->ValueType=EInputActionValueType::Axis2D;
 		KeyboardInputActionMap.Add(TEXT("IA_Float2D_W"),IA_Float2D_W);
-		KeyboardInputMappingContextMap->MapKey(IA_Float2D_W,EKeys::W);
-		
-		
-		//添加键盘输入A
-		UInputAction* IA_Float2D_A=NewObject<UInputAction>(this,TEXT("IA_Float2D_A"));
-		IA_Float2D_A->bConsumeInput=bConsumeInput;
-		IA_Float2D_A->bTriggerWhenPaused=false;
-		IA_Float2D_A->bReserveAllMappings=false;
-		IA_Float2D_A->ValueType=EInputActionValueType::Axis2D;
-		KeyboardInputActionMap.Add(TEXT("IA_Float2D_A"),IA_Float2D_A);
-		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingA=KeyboardInputMappingContextMap->MapKey(IA_Float2D_A,EKeys::A);
-		FEnhancedActionKeyMappingA.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
-		FEnhancedActionKeyMappingA.Modifiers.Add(NewObject<UInputModifierNegate>());
-		
-		
-		//添加键盘输入S
+		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingW=KeyboardInputMappingContextMap->MapKey(IA_Float2D_W,EKeys::W);
+		FEnhancedActionKeyMappingW.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
+
+		//添加键盘输入S,将S的输入作为Y轴的负数
 		UInputAction* IA_Float2D_S=NewObject<UInputAction>(this,TEXT("IA_Float2D_S"));
 		IA_Float2D_S->bConsumeInput=bConsumeInput;
 		IA_Float2D_S->bTriggerWhenPaused=false;
@@ -73,9 +61,20 @@ void UKeyboardInputComponent::RegisterInputMapping()
 		IA_Float2D_S->ValueType=EInputActionValueType::Axis2D;
 		KeyboardInputActionMap.Add(TEXT("IA_Float2D_S"),IA_Float2D_S);
 		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingS= KeyboardInputMappingContextMap->MapKey(IA_Float2D_S,EKeys::S);
+		FEnhancedActionKeyMappingS.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
 		FEnhancedActionKeyMappingS.Modifiers.Add(NewObject<UInputModifierNegate>());
 		
-		//添加键盘输入D
+		//添加键盘输入A,将A的输入作为X轴的负数
+		UInputAction* IA_Float2D_A=NewObject<UInputAction>(this,TEXT("IA_Float2D_A"));
+		IA_Float2D_A->bConsumeInput=bConsumeInput;
+		IA_Float2D_A->bTriggerWhenPaused=false;
+		IA_Float2D_A->bReserveAllMappings=false;
+		IA_Float2D_A->ValueType=EInputActionValueType::Axis2D;
+		KeyboardInputActionMap.Add(TEXT("IA_Float2D_A"),IA_Float2D_A);
+		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingA=KeyboardInputMappingContextMap->MapKey(IA_Float2D_A,EKeys::A);
+		FEnhancedActionKeyMappingA.Modifiers.Add(NewObject<UInputModifierNegate>());
+		
+		//添加键盘输入D,将D的输入作为X轴的正数
 		UInputAction* IA_Float2D_D=NewObject<UInputAction>(this,TEXT("IA_Float2D_D"));
 		IA_Float2D_D->bConsumeInput=bConsumeInput;
 		IA_Float2D_D->bTriggerWhenPaused=false;
@@ -83,7 +82,6 @@ void UKeyboardInputComponent::RegisterInputMapping()
 		IA_Float2D_D->ValueType=EInputActionValueType::Axis2D;
 		KeyboardInputActionMap.Add(TEXT("IA_Float2D_D"),IA_Float2D_D);
 		FEnhancedActionKeyMapping& FEnhancedActionKeyMappingD=KeyboardInputMappingContextMap->MapKey(IA_Float2D_D,EKeys::D);
-		FEnhancedActionKeyMappingD.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>());
 		
 		//添加键盘输入E
 		UInputAction* IA_Float1D_E=NewObject<UInputAction>(this,TEXT("IA_Float1D_E"));
