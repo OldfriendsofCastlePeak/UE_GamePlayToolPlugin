@@ -1,11 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../Public/CommonBasePawn.h"
+#include "CommonBasePawn.h"
 #include "EnhancedInputComponent.h"
-#include "Camera/CameraActor.h"
+#include "Curves/CurveFloat.h"
 #include "CommonGamePlayToolPlugin/Component/Input/InputBaseComponent.h"
-#include "Components/TimelineComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -27,12 +26,10 @@ ACommonBasePawn::ACommonBasePawn(const FObjectInitializer& ObjectInitializer)
 	//创建挂在弹簧臂上的相机,用于鸟瞰形式的移动.
 	SpringArm_Camera=CreateDefaultSubobject<UCameraComponent>("SpringArm_Camera");
 	SpringArm_Camera->SetupAttachment(SpringArm);
-	//SpringArm_Camera->SetAutoActivate(true);
 	
 	//创建用于第一人称世界形式的移动的相机.
 	Normal_Camera=CreateDefaultSubobject<UCameraComponent>("Normal_Camera");
 	Normal_Camera->SetupAttachment(Scene);
-	//Normal_Camera->SetAutoActivate(false);
 }
 
 // Called when the game starts or when spawned
@@ -119,6 +116,9 @@ void ACommonBasePawn::ReceiveFVector2DInputEvent_Implementation(const FVector2D 
 	//当前正在进行视口混合时不接收输入
 	if (bPlayingViewBlend) return;
 
+	//重置自动旋转时间
+	Reset_Auto_Rotate_Total_Time();
+	
 	//根据移动方式选择性做特定的处理:仅移动不旋转
 	if (bMove_Action_Type==true&&bRotate_Action_Type==false)
 	{
@@ -157,7 +157,7 @@ void ACommonBasePawn::AllCameraReceiveFVector2DInputRotateEvent_Implementation(c
 {
 }
 
-void ACommonBasePawn::ReceiveFVector2DInputRotateEvent_Implementation(const FVector2D Value)
+void ACommonBasePawn::ReceiveFVector2DInputRotateEvent_Implementation(const FVector2D& Value)
 {
 	//根据激活的相机做特定的处理:Normal_Camera相机激活,SpringArm_Camera相机未激活
 	if (Normal_Camera->IsActive()&&!SpringArm_Camera->IsActive())
@@ -190,7 +190,7 @@ void ACommonBasePawn::ReceiveFVector2DInputRotateEvent_Implementation(const FVec
 	}
 }
 
-void ACommonBasePawn::ReceiveFVector2DInputMoveEvent_Implementation(const FVector2D Value)
+void ACommonBasePawn::ReceiveFVector2DInputMoveEvent_Implementation(const FVector2D& Value)
 {
 	//根据激活的相机做特定的处理:Normal_Camera相机激活,SpringArm_Camera相机未激活
 	if (Normal_Camera->IsActive()&&!SpringArm_Camera->IsActive())
@@ -273,7 +273,16 @@ void ACommonBasePawn::SpringArm_Camera_Receive_Float_Input_Event_Implementation(
 	CurrentSpringArm_Length=SpringArm->TargetArmLength;
 	
 	//目标的弹簧臂长度
-	TargetSpringArm_Length=UKismetMathLibrary::FClamp(SpringArm->TargetArmLength-SpringArmChange_Value,SpringArmLength_Limit.X,SpringArmLength_Limit.Y);
+	if (bEnableLimietSpringArmLength)
+	{
+		TargetSpringArm_Length=UKismetMathLibrary::FClamp(SpringArm->TargetArmLength-SpringArmChange_Value,SpringArmLength_Limit.X,SpringArmLength_Limit.Y);
+	}
+	else
+	{
+		//只限制最小值0
+		TargetSpringArm_Length=(SpringArm->TargetArmLength-SpringArmChange_Value)>0?SpringArm->TargetArmLength-SpringArmChange_Value:0;
+	}
+	
 	
 	//重置自动旋转时间
 	Reset_Auto_Rotate_Total_Time();
@@ -332,7 +341,7 @@ void ACommonBasePawn::GetCurrentActiveCamera(TEnumAsByte<ECurrentActiveCamera>& 
 void ACommonBasePawn::SpringArm_Camera_Receive_FVector2D_Input_Event_Implementation(const FVector2D& Value)
 {
 	//检测当前角度是否在限定范围内
-	if (!(UKismetMathLibrary::InRange_FloatFloat(GetActorRotation().Pitch,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.X,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.Y),true,true))
+	if (!(UKismetMathLibrary::InRange_FloatFloat(GetActorRotation().Pitch,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.X,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.Y,true,true)))
 	{
 		//不在范围内,尝试转为Normal_Camera
 		SpringArm_Camera_To_Normal_Camera();
@@ -535,7 +544,7 @@ void ACommonBasePawn::SpringArm_TimeLine_Update(const float Value)
 
 bool ACommonBasePawn::Can_Normal_Camera_To_SpringArm_Camera_Pitch_Range()
 {
-	return (UKismetMathLibrary::InRange_FloatFloat(GetActorRotation().Pitch,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.X,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.Y),true,true);
+	return (UKismetMathLibrary::InRange_FloatFloat(GetActorRotation().Pitch,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.X,Normal_Camera_To_SpringArm_Camera_Rotate_Pitch_Range.Y,true,true));
 }
 
 void ACommonBasePawn::SpringArmCameraReceiveFVector2DInputMoveEvent_Implementation(const FVector2D& Value)

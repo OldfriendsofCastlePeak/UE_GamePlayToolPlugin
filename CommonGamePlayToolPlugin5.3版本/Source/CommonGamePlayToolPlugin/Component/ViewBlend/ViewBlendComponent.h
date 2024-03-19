@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
 #include "Components/ActorComponent.h"
+#include "GameFramework/Pawn.h"
 #include "ViewBlendComponent.generated.h"
+
 
 
 UCLASS(ClassGroup=(CommonToolComponent), meta=(BlueprintSpawnableComponent),Blueprintable)
@@ -63,6 +65,7 @@ class ABlendViewPawn : public APawn
 {
 	GENERATED_BODY()
 public:
+	//ACommonBasePawn(const FObjectInitializer& ObjectInitializer);
 	// Sets default values for this pawn's properties
 	ABlendViewPawn(const FObjectInitializer& ObjectInitializer)
 	 :Super(ObjectInitializer)

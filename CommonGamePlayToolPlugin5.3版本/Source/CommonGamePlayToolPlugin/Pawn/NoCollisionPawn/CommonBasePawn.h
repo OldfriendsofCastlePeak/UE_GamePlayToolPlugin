@@ -3,11 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "../CustomBasePawn.h"
 #include "../../Component/ViewBlend/ViewBlendComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Curves/RichCurve.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "CommonBasePawn.generated.h"
+
 
 UENUM(BlueprintType)
 enum ECurrentActiveCamera:uint8
@@ -18,10 +22,8 @@ enum ECurrentActiveCamera:uint8
 	No_Camera_Active				//没有相机处于激活状态
 };
 
-class UTimelineComponent;
-
-UCLASS(Blueprintable,BlueprintType,HideCategories=(Pawn,Actor,Compomemts,UObject,Camera,Replication,Collision,HLOD,Input,Physics,DataLayers))
-class COMMONGAMEPLAYTOOLPLUGIN_API ACommonBasePawn : public APawn
+UCLASS(Blueprintable,BlueprintType)
+class COMMONGAMEPLAYTOOLPLUGIN_API ACommonBasePawn : public ACustomBasePawn
 {
 	GENERATED_BODY()
 
@@ -32,7 +34,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -45,12 +47,11 @@ public:
 	void SetupPlayerInputComponent_Internal();
 
 	/* 仅用于测试显示当前可识别的输入 */
-	UFUNCTION(BlueprintPure,meta=(DevelopmentOnly))
+	UFUNCTION(BlueprintPure,meta=(DevelopmentOnly),Category="ACommonBasePawn")
 	int32 GetAllInput();
-
-
+	
 	/* 用于在Tick方法中使用的计时操作 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn")
 	void TickTimerEvent(float DeltaTime);
 	
 
@@ -94,6 +95,7 @@ public:
 #pragma endregion
 
 #pragma region 开关属性
+public:	
 	/* bCan_Move用于条件判断,控制Pawn是否可以在接收输入之后进行移动 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Switch")
 	bool bCan_Move=true;
@@ -113,18 +115,20 @@ public:
 	/* 用户设置是否允许拉近和拉远视角 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Switch")
 	bool bCan_ScaleView=true;
-	
+#pragma endregion
+
+#pragma region 状态属性
+public:	
 	/* 属性表示当前是否正在播放漫游Sequence动画 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|State")
 	bool bPlayingSequence=false;
 
 	/* 属性表示当前是否正在进行视角混合 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|State")
 	bool bPlayingViewBlend=false;
-	
 #pragma endregion
-	
-#pragma region 自动绕点旋转
+
+#pragma region 自动绕点旋转属性
 	/* 自动速度,以秒旋转的度数 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|AutoRotate",meta=(EditCondition="bCan_AutoRotate"))
 	float Auto_Rotate_Speed=2;
@@ -150,32 +154,36 @@ public:
 	void Reset_Auto_Rotate_Total_Time();
 #pragma endregion
 
-#pragma region 移动范围限制
+#pragma region 限制属性
 	/* 是否限制Pawn的移动范围 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Limit")
 	bool bCan_Limit_Move_Range=true;
 
 	/* 最小的移动范围点 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move",meta=(EditCondition="bCan_Limit_Move_Range"))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Limit",meta=(EditCondition="bCan_Limit_Move_Range"))
 	FVector2D Min_Move_Range=FVector2D(-1000000,-1000000);
 
 	/* 最大的移动范围点 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move",meta=(EditCondition="bCan_Limit_Move_Range"))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Limit",meta=(EditCondition="bCan_Limit_Move_Range"))
 	FVector2D Max_Move_Range=FVector2D(1000000,1000000);
-
+	
 	/* Pawn的原点在Z轴上可以到的最底值 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Move")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Limit")
 	float Pawn_Min_Z_Value=500;
+
+	/* 是否限制SpringArm的弹簧臂属性的最大值 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Limit")
+	bool bEnableLimietSpringArmLength=true;
+
+	/* 属性表示弹簧臂的长度的限定值,X值表示最小值,Y值表示最大值 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Limit",meta=(EditCondition="bEnableLimietSpringArmLength"))
+	FVector2D SpringArmLength_Limit=FVector2D(0.f,2000000.f);
 #pragma endregion
 
 #pragma region SpringArm_Camera移动
 	/* SpringArm_Camera旋转Pitch值范围,X值表示最小值,Y值表示最大值 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
 	FVector2D SpringArm_Camera_Rotate_Pitch_Range=FVector2D(-80.f,-1.f);
-	
-	/* 属性表示弹簧臂的长度的限定值,X值表示最小值,Y值表示最大值 */
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
-	FVector2D SpringArmLength_Limit=FVector2D(0.f,2000000.f);
 	
 	/* 属性SpringArm_Camera旋转系数,X:表示X方向的旋转,Y:表示Y方向的旋转 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
@@ -185,7 +193,7 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|SpringArm_Camera")
 	FVector2D SpringArm_Camera_Move_Param=FVector2D(-1.f,-1.f);
 #pragma endregion
-
+             
 #pragma region Normal_Camera
 	/* Normal_Camera可以转为SpringArm_Camera时的Pitch值范围,X值表示最小值,Y值表示最大值,最好不要更改 */
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ACommonBasePawn|Normal_Camera")
@@ -208,7 +216,7 @@ public:
 #pragma region 处理相关功能需要的属性
 public:	
 	/* 用于视口混合的临时Actor */
-	UPROPERTY(Transient)
+	UPROPERTY()
 	ABlendViewPawn* View_Blend_Tem_Pawn;
 
 	/* 目标的弹簧臂长度,用于计算使用 */
@@ -240,8 +248,8 @@ public:
 	/////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////
 	/* 接收FVector2D输入来进行移动 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn")
-	void ReceiveFVector2DInputMoveEvent(const FVector2D Value);
+	//UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn")
+	virtual void ReceiveFVector2DInputMoveEvent_Implementation(const FVector2D& Value) override;
 	
 	/* SpringArm_Camera接收FVector2D输入来进行移动 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|SpringArm_Camera")
@@ -267,8 +275,8 @@ public:
 	/////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////
 	/* 接收FVector2D输入来进行旋转 */
-    UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn")
-    void ReceiveFVector2DInputRotateEvent(const FVector2D Value);
+    //UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn")
+    virtual void ReceiveFVector2DInputRotateEvent_Implementation(const FVector2D& Value) override;
 	
 	/* SpringArm_Camera接收FVector2D输入来进行旋转 */
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBasePawn|SpringArm_Camera")
@@ -312,9 +320,8 @@ public:
 #pragma endregion
 
 #pragma region 处理Pawn移动相关
-	
 	/* 获取当前处于激活状态的相机状态 */
-	UFUNCTION(BlueprintCallable,meta=(ExpandEnumAsExecs="CurrentActiveCamera"))
+	UFUNCTION(BlueprintCallable,meta=(ExpandEnumAsExecs="CurrentActiveCamera"),Category="ACommonBasePawn")
 	void GetCurrentActiveCamera(TEnumAsByte<ECurrentActiveCamera>& CurrentActiveCamera);
 	
 	/* 用于确保只有一个Camera处于激活状态 */
@@ -365,23 +372,23 @@ public:
 
 #pragma region 视口过渡
 	/* 用于记录视角混合的镜头 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn")
 	FName BlendViewCameraName;
 
 	/* 用于记录视口需要混合到的位置 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn")
 	FVector BlendViewTargetLocation;
 
 	/* 用于记录视口需要混合到的角度 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn")
 	FVector BlendViewStartLocation;
 	
 	/* 用于记录视口需要混合到的角度 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn")
 	FRotator BlendViewTargetRotate;
 
 	/* 用于记录视口需要混合到的角度 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite,Category="ACommonBasePawn")
 	FRotator BlendViewStartRotate;
 	
 	/* 直接设置视口的位置、角度、镜头FOV */

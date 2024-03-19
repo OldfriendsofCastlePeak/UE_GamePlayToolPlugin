@@ -4,7 +4,7 @@
 	"VersionName": "1.0",
 	"FriendlyName": "CommonGamePlayToolPlugin",
 	"Description": "",
-	"Category": "Other",
+	"Category": "ToolPlugin",
 	"CreatedBy": "Ming",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -13,12 +13,15 @@
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
-	"Installed":false,
+	"Installed": false,
 	"Modules": [
 		{
 			"Name": "CommonGamePlayToolPlugin",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
 		}
 	],
 	"Plugins": [

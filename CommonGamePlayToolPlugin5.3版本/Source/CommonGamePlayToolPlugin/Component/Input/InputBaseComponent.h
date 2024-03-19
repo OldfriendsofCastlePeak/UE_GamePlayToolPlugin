@@ -5,8 +5,12 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
+#include "GameFramework/Actor.h"
+#include "GameFramework/PlayerController.h"
 #include "InputBaseComponent.generated.h"
+
+
 
 
 /* 该类用于输入组件的基类类型 */
@@ -30,6 +34,14 @@ public:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UInputBaseComponent|Register")
 	bool bAuto_Register_Input_Mapping=true;
+
+	//输入优先级
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UInputBaseComponent|Register")
+	int32 InputPriority=0;
+
+	/* 消耗输入 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UInputBaseComponent|Register")
+	bool bConsumeInput=true;
 	
 	/* 注册触碰输入映射 */
 	UFUNCTION(BlueprintCallable,Category="UInputBaseComponent|Register")
@@ -40,7 +52,7 @@ public:
 	virtual void UnRegisterInputMapping(){};
 
 	/* 检测APlayerController上是否有UInputBaseComponent组件 */
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure,Category="UInputBaseComponent")
 	virtual bool PlayerController_Contain_InputBaseComponent()
 	{
 		if (APlayerController* PlayerController=Cast<APlayerController>(this->GetOwner()->GetInstigator()))
@@ -54,7 +66,7 @@ public:
 	}
 
 	/* 检测组件的Owner上是否有UInputBaseComponent组件 */
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure,Category="UInputBaseComponent")
 	virtual bool Actor_Contain_InputBaseComponent()
 	{
 		if (AActor* Actor=this->GetOwner())

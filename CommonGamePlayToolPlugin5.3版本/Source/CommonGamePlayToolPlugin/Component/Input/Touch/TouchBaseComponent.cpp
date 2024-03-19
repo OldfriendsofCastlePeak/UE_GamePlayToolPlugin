@@ -3,6 +3,8 @@
 
 #include "TouchBaseComponent.h"
 
+#include "EnhancedInputSubsystems.h"
+
 
 // Sets default values for this component's properties
 UTouchBaseComponent::UTouchBaseComponent()
@@ -72,7 +74,7 @@ void UTouchBaseComponent::RegisterInputMapping()
     			//添加到上下文中
     			if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
     			{
-    				EnhancedInputLocalPlayerSubsystem->AddMappingContext(Touch_Input_Mapping_Context,0);
+    				EnhancedInputLocalPlayerSubsystem->AddMappingContext(Touch_Input_Mapping_Context,InputPriority);
     			}
     		}
     	}

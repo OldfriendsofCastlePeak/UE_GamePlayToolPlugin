@@ -3,6 +3,8 @@
 
 #include "SingleTouchComponent.h"
 
+#include "EnhancedInputSubsystems.h"
+
 
 // Sets default values for this component's properties
 USingleTouchComponent::USingleTouchComponent()
@@ -85,7 +87,7 @@ void USingleTouchComponent::RegisterInputMapping()
     			EnhancedInputComponent->BindAction(Touch_Input_Action_Map.FindChecked(TEXT("IA_Float2D_Touch1")),ETriggerEvent::Completed,this,&UTouchBaseComponent::Touch_Released_Internal_Event);
 
     			//注册
-    			EnhancedInputLocalPlayerSubsystem->AddMappingContext(Touch_Input_Mapping_Context,0);
+    			EnhancedInputLocalPlayerSubsystem->AddMappingContext(Touch_Input_Mapping_Context,InputPriority);
     			
     		}
     	}

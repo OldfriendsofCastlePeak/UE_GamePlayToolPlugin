@@ -43,7 +43,7 @@ void UMouseInputComponent::RegisterInputMapping()
 	{
 		//IA_Float2D_MouseXY用来处理鼠标在XY轴上的输入
 		UInputAction* IA_Float2D_MouseXY=NewObject<UInputAction>(this,TEXT("IA_Float2D_MouseXY"));
-		IA_Float2D_MouseXY->bConsumeInput=true;
+		IA_Float2D_MouseXY->bConsumeInput=bConsumeInput;
 		IA_Float2D_MouseXY->bTriggerWhenPaused=false;
 		IA_Float2D_MouseXY->bReserveAllMappings=false;
 		IA_Float2D_MouseXY->ValueType=EInputActionValueType::Axis2D;
@@ -57,7 +57,7 @@ void UMouseInputComponent::RegisterInputMapping()
 		
 		//IA_Bool_MouseLeftButton用来处理鼠标左键的输入
 		UInputAction* IA_Bool_MouseLeftButton=NewObject<UInputAction>(this,TEXT("IA_Bool_MouseLeftButton"));
-		IA_Bool_MouseLeftButton->bConsumeInput=true;
+		IA_Bool_MouseLeftButton->bConsumeInput=bConsumeInput;
 		IA_Bool_MouseLeftButton->bTriggerWhenPaused=false;
 		IA_Bool_MouseLeftButton->bReserveAllMappings=false;
 		IA_Bool_MouseLeftButton->ValueType=EInputActionValueType::Boolean;
@@ -67,7 +67,7 @@ void UMouseInputComponent::RegisterInputMapping()
 		
 		//IA_Bool_MouseRightButton用来处理鼠标右键的输入
 		UInputAction* IA_Bool_MouseRightButton=NewObject<UInputAction>(this,TEXT("IA_Bool_MouseRightButton"));
-		IA_Bool_MouseRightButton->bConsumeInput=true;
+		IA_Bool_MouseRightButton->bConsumeInput=bConsumeInput;
 		IA_Bool_MouseRightButton->bTriggerWhenPaused=false;
 		IA_Bool_MouseRightButton->bReserveAllMappings=false;
 		IA_Bool_MouseRightButton->ValueType=EInputActionValueType::Boolean;
@@ -77,7 +77,7 @@ void UMouseInputComponent::RegisterInputMapping()
 		
 		//IA_Float1D_MouseWheel用来处理滚动鼠标中间的输入
 		UInputAction* IA_Float1D_MouseWheel=NewObject<UInputAction>(this,TEXT("IA_Float1D_MouseWheel"));
-		IA_Float1D_MouseWheel->bConsumeInput=true;
+		IA_Float1D_MouseWheel->bConsumeInput=bConsumeInput;
 		IA_Float1D_MouseWheel->bTriggerWhenPaused=false;
 		IA_Float1D_MouseWheel->bReserveAllMappings=false;
 		IA_Float1D_MouseWheel->ValueType=EInputActionValueType::Axis1D;
@@ -114,7 +114,7 @@ void UMouseInputComponent::RegisterInputMapping()
 				EnhancedInputComponent->BindAction(MouseInputActionMap.FindChecked(TEXT("IA_Float1D_MouseWheel")),ETriggerEvent::Triggered,this,&UMouseInputComponent::MouseWheel_Internal);
 				
 				//注册
-				EnhancedInputLocalPlayerSubsystem->AddMappingContext(MouseInputMappingContextMap,0);
+				EnhancedInputLocalPlayerSubsystem->AddMappingContext(MouseInputMappingContextMap,InputPriority);
 			}
 		}
 	}

@@ -97,6 +97,7 @@ void UPlaySequenceToolComponent::PlayLevelSequence(ULevelSequence* InLevelSequen
 		//更新要播放的Sequence资源
 		SequencePlayer->Initialize(InLevelSequenceAsset,GetComponentLevel(),CameraSettings);
 	}
+	SequencePlayer->SetPlaybackPosition(FMovieSceneSequencePlaybackParams());
 	SequencePlayer->Play();
 }
 

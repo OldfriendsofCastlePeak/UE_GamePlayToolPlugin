@@ -55,5 +55,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBaseManager")
 	void On_All_Manager_Register_Complete_Event();
 	virtual void On_All_Manager_Register_Complete_Event_Implementation(){}
-	
+
+	/* 开始的所有关卡加载完毕 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="ACommonBaseManager")
+	void StartLevelLoadEnd();
+	virtual void StartLevelLoadEnd_Implementation(){}
 };

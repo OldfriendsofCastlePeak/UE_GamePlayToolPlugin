@@ -30,19 +30,19 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAINotifyDelegate,uint8,Value);
 
 	/* AI移动结束 */
-	UPROPERTY(BlueprintAssignable,BlueprintReadWrite,EditAnywhere)
+	UPROPERTY(BlueprintAssignable,Category="AAIBaseCharacter")
 	FAINotifyDelegate AIMoveEnd;
 
-	UPROPERTY(BlueprintReadWrite,EditAnywhere)
+	UPROPERTY(BlueprintReadWrite,EditAnywhere,Category="AAIBaseCharacter")
 	uint8 Value;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable,Category="AAIBaseCharacter")
 	void CallAIMoveEndDelegate()
 	{
 		AIMoveEnd.Broadcast(Value);
 	}
 	
 	/* AI从一个位置移动到另一个位置 */
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable,Category="AAIBaseCharacter")
 	void AIMoveFromStartToEnd(const FVector StartLoction,const FVector EndLoction);
 };

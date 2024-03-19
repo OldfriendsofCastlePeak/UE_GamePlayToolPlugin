@@ -95,7 +95,7 @@ public:
 	void PlayActorLevelSequence(class ALevelSequenceActor* InLevelSequenceAsset,const FName Name);
 
 	/* 用于记录当前播放的Sequence的标识名,需要传入 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite,Category="AAIBaseCharacter")
 	FName CurrentPlayName;
 	
 	UFUNCTION()
